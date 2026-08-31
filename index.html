@@ -2,56 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>📍 Location Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a1e2f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>📍 Location Test - EarthPulse</title>
     <style>
+        /* ============================================
+           COMPLETE STYLES
+        ============================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0c2740, #061522);
-            color: #fff;
+            background: radial-gradient(ellipse at top, #0c2740 0%, #061522 50%, #04101b 100%);
+            color: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
+
         .container {
             max-width: 450px;
             width: 100%;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
             padding: 35px 25px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
             text-align: center;
+            animation: fadeIn 0.6s ease;
         }
-        .icon {
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
             font-size: 60px;
-            margin-bottom: 15px;
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 700;
             margin-bottom: 8px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 6px;
             background: linear-gradient(135deg, #00d4ff, #7b61ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        p {
-            color: rgba(255,255,255,0.6);
-            font-size: 15px;
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
             margin-bottom: 25px;
             line-height: 1.6;
         }
+
+        .subtitle strong {
+            color: #00d4ff;
+            -webkit-text-fill-color: #00d4ff;
+        }
+
+        /* --- Button --- */
         .btn {
             width: 100%;
-            padding: 18px;
+            padding: 18px 20px;
             border: none;
             border-radius: 16px;
             background: linear-gradient(135deg, #00d4ff, #7b61ff);
@@ -60,280 +94,446 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 8px 30px rgba(0,212,255,0.25);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
+
         .btn:active {
             transform: scale(0.97);
         }
+
         .btn:disabled {
             opacity: 0.6;
+            transform: scale(1);
         }
+
+        .btn .spinner {
+            display: none;
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn.loading .spinner {
+            display: block;
+        }
+
+        .btn.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- Status --- */
         .status {
             margin-top: 20px;
-            padding: 16px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+            transition: all 0.3s;
         }
+
         .status.success {
-            border-color: rgba(76,223,139,0.3);
-            background: rgba(76,223,139,0.08);
+            border-color: rgba(76, 223, 139, 0.25);
+            background: rgba(76, 223, 139, 0.06);
             color: #4cdf8b;
         }
+
         .status.error {
-            border-color: rgba(255,107,107,0.3);
-            background: rgba(255,107,107,0.08);
+            border-color: rgba(255, 107, 107, 0.25);
+            background: rgba(255, 107, 107, 0.06);
             color: #ff6b6b;
         }
+
         .status.info {
-            border-color: rgba(0,212,255,0.3);
-            background: rgba(0,212,255,0.08);
+            border-color: rgba(0, 212, 255, 0.25);
+            background: rgba(0, 212, 255, 0.06);
             color: #72dfff;
         }
+
+        .status .small {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* --- Result --- */
         .result-box {
-            margin-top: 15px;
-            padding: 16px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.04);
+            margin-top: 16px;
+            padding: 18px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             display: none;
             text-align: left;
             font-size: 14px;
             line-height: 1.8;
+            animation: fadeIn 0.4s ease;
         }
+
         .result-box.show {
             display: block;
         }
-        .result-box strong {
-            color: #00d4ff;
+
+        .result-box .big-icon {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 8px;
         }
-        .coordinates {
-            font-family: monospace;
-            background: rgba(0,0,0,0.3);
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
-            font-size: 13px;
+
+        .result-box .coords {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin: 6px 0 10px;
+            color: #72dfff;
+            word-break: break-all;
         }
-        .hint {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            margin-top: 15px;
+
+        .result-box .coords strong {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
         }
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        .badge.https {
-            background: rgba(76,223,139,0.15);
-            color: #4cdf8b;
-        }
-        .badge.http {
-            background: rgba(255,107,107,0.15);
-            color: #ff6b6b;
-        }
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.2);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-        .btn.loading .spinner {
-            display: inline-block;
-        }
-        .btn.loading .btn-text {
-            display: none;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+
         .details-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 8px;
         }
+
         .details-grid .item {
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.03);
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 8px;
             font-size: 12px;
+            text-align: center;
         }
-        .details-grid .item strong {
+
+        .details-grid .item .label {
             display: block;
-            color: rgba(255,255,255,0.4);
-            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .details-grid .item .value {
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .success-msg {
+            text-align: center;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(76, 223, 139, 0.06);
+            border: 1px solid rgba(76, 223, 139, 0.1);
+            font-size: 13px;
+            color: #4cdf8b;
+        }
+
+        /* --- Badge --- */
+        .badge-container {
+            margin-top: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.https {
+            background: rgba(76, 223, 139, 0.12);
+            color: #4cdf8b;
+            border: 1px solid rgba(76, 223, 139, 0.15);
+        }
+
+        .badge.http {
+            background: rgba(255, 107, 107, 0.12);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.15);
+        }
+
+        .badge.local {
+            background: rgba(0, 212, 255, 0.12);
+            color: #72dfff;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+        }
+
+        /* --- Footer --- */
+        .footer {
+            margin-top: 18px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 420px) {
+            .container {
+                padding: 25px 18px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .logo {
+                font-size: 48px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 16px;
+            }
+            .details-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .container {
+                padding: 20px 14px;
+            }
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">📍</div>
-        <h1>Location Test</h1>
-        <p>Check if your phone can detect location</p>
 
+    <div class="container">
+        <!-- Logo -->
+        <span class="logo">📍</span>
+        <h1>Location Test</h1>
+        <p class="subtitle">
+            Check if your phone can detect location<br>
+            <strong>📱 Works on HTTPS only</strong>
+        </p>
+
+        <!-- Button -->
         <button id="getLocationBtn" class="btn">
             <span class="btn-text">📍 Get My Location</span>
             <span class="spinner"></span>
         </button>
 
-        <div id="status" class="status">Ready to detect location</div>
+        <!-- Status -->
+        <div id="status" class="status">🔍 Ready to detect location</div>
+
+        <!-- Result -->
         <div id="result" class="result-box"></div>
 
-        <div id="badgeContainer"></div>
-        <div class="hint">Make sure GPS and Location Services are ON</div>
+        <!-- Badge -->
+        <div class="badge-container" id="badgeContainer"></div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Make sure <strong>GPS</strong> and <strong>Location Services</strong> are ON
+        </div>
     </div>
 
     <script>
+        // ============================================
+        // COMPLETE JAVASCRIPT - LOCATION TEST
+        // ============================================
+
         const btn = document.getElementById('getLocationBtn');
         const status = document.getElementById('status');
         const result = document.getElementById('result');
         const badgeContainer = document.getElementById('badgeContainer');
 
-        // --- Show HTTPS status ---
+        let isLocating = false;
+
+        // --- Show HTTPS/Local status ---
         function showBadge() {
             const isHttps = window.location.protocol === 'https:';
-            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-            const badge = document.createElement('div');
-            badge.className = `badge ${isHttps || isLocal ? 'https' : 'http'}`;
-            badge.textContent = isHttps || isLocal ? '🔒 HTTPS - Location works' : '⚠️ HTTP - Location may not work';
-            badgeContainer.appendChild(badge);
+            const isLocal = ['localhost', '127.0.0.1', ''].includes(window.location.hostname) || 
+                            window.location.hostname.startsWith('192.168.') ||
+                            window.location.hostname.startsWith('10.') ||
+                            window.location.hostname === '0.0.0.0';
+
+            const badge = document.createElement('span');
+            badge.className = `badge ${isHttps ? 'https' : isLocal ? 'local' : 'http'}`;
             
-            if (!isHttps && !isLocal) {
+            if (isHttps) {
+                badge.textContent = '🔒 HTTPS — Location works';
+            } else if (isLocal) {
+                badge.textContent = '🟢 localhost — Location works';
+            } else {
+                badge.textContent = '⚠️ HTTP — Location may not work';
                 status.className = 'status error';
                 status.innerHTML = '⚠️ <strong>HTTPS Required!</strong><br>Location works only on HTTPS or localhost.<br>Please use a secure connection.';
             }
+            badgeContainer.appendChild(badge);
         }
         showBadge();
 
         // --- Get Location ---
         btn.addEventListener('click', function() {
-            // Check if geolocation is available
+            if (isLocating) return;
+            isLocating = true;
+
+            // Check geolocation support
             if (!navigator.geolocation) {
                 status.className = 'status error';
                 status.innerHTML = '❌ Geolocation is not supported by this browser.';
+                isLocating = false;
                 return;
             }
 
             // Check HTTPS
-            if (window.location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+            if (window.location.protocol !== 'https:' && 
+                !['localhost', '127.0.0.1', ''].includes(window.location.hostname) &&
+                !window.location.hostname.startsWith('192.168.') &&
+                !window.location.hostname.startsWith('10.')) {
                 status.className = 'status error';
-                status.innerHTML = '⚠️ <strong>HTTPS Required!</strong><br>Please use HTTPS or localhost for location.';
+                status.innerHTML = '⚠️ <strong>HTTPS Required!</strong><br>Please use HTTPS for location detection.';
+                isLocating = false;
                 return;
             }
 
             // Start loading
             btn.classList.add('loading');
             btn.disabled = true;
+
             status.className = 'status info';
-            status.innerHTML = '📍 Detecting your location...<br><small>Please wait 3-10 seconds</small>';
+            status.innerHTML = '📍 Detecting your location...<br><span class="small">Please wait 3-10 seconds</span>';
+
             result.classList.remove('show');
             result.innerHTML = '';
 
-            // Try to get location
+            // Get position
             navigator.geolocation.getCurrentPosition(
                 // Success
                 function(position) {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     const accuracy = position.coords.accuracy;
-                    const alt = position.coords.altitude;
+                    const altitude = position.coords.altitude;
                     const speed = position.coords.speed;
+                    const heading = position.coords.heading;
 
                     btn.classList.remove('loading');
                     btn.disabled = false;
+                    isLocating = false;
 
                     status.className = 'status success';
-                    status.innerHTML = '✅ Location detected successfully!';
+                    status.innerHTML = '✅ <strong>Location detected successfully!</strong>';
 
                     result.className = 'result-box show';
                     result.innerHTML = `
-                        <div style="text-align:center;margin-bottom:10px;">
-                            <span style="font-size:40px;">📍</span>
-                        </div>
-                        <div class="coordinates">
-                            <strong>Latitude:</strong> ${lat.toFixed(6)}<br>
-                            <strong>Longitude:</strong> ${lon.toFixed(6)}
+                        <div class="big-icon">📍</div>
+                        <div class="coords">
+                            <strong>Lat:</strong> ${lat.toFixed(6)}<br>
+                            <strong>Lon:</strong> ${lon.toFixed(6)}
                         </div>
                         <div class="details-grid">
                             <div class="item">
-                                <strong>Accuracy</strong>
-                                ${accuracy ? accuracy.toFixed(1) + ' m' : '--'}
+                                <span class="label">Accuracy</span>
+                                <span class="value">${accuracy ? accuracy.toFixed(1) + ' m' : '--'}</span>
                             </div>
                             <div class="item">
-                                <strong>Altitude</strong>
-                                ${alt ? alt.toFixed(1) + ' m' : '--'}
+                                <span class="label">Altitude</span>
+                                <span class="value">${altitude ? altitude.toFixed(1) + ' m' : '--'}</span>
                             </div>
                             <div class="item">
-                                <strong>Speed</strong>
-                                ${speed ? speed.toFixed(1) + ' m/s' : '--'}
+                                <span class="label">Speed</span>
+                                <span class="value">${speed ? speed.toFixed(1) + ' m/s' : '--'}</span>
                             </div>
                             <div class="item">
-                                <strong>Time</strong>
-                                ${new Date().toLocaleTimeString()}
+                                <span class="label">Heading</span>
+                                <span class="value">${heading ? heading.toFixed(1) + '°' : '--'}</span>
                             </div>
                         </div>
-                        <div style="margin-top:12px;text-align:center;font-size:13px;color:rgba(255,255,255,0.5);">
+                        <div class="success-msg">
                             ✅ Location is working!<br>
-                            <small>Now your EarthPulse app will work too</small>
+                            <small style="opacity:0.7;">Now your EarthPulse app will work too</small>
                         </div>
                     `;
 
                     // Save permission
                     try {
                         localStorage.setItem('locationGranted', 'true');
-                    } catch(e) {}
+                    } catch (e) {}
                 },
 
                 // Error
                 function(error) {
                     btn.classList.remove('loading');
                     btn.disabled = false;
+                    isLocating = false;
 
                     let errorMsg = '';
                     let suggestion = '';
 
-                    switch(error.code) {
+                    switch (error.code) {
                         case 1: // PERMISSION_DENIED
-                            errorMsg = '❌ Permission Denied';
-                            suggestion = 'Please allow location in browser settings:\n\nChrome: Settings → Site Settings → Location → Allow\nSafari: Settings → Privacy → Location Services → On';
+                            errorMsg = '❌ Location Permission Denied';
+                            suggestion = 'Please allow location in browser settings and try again.';
                             break;
                         case 2: // POSITION_UNAVAILABLE
                             errorMsg = '❌ Location Unavailable';
                             suggestion = 'Please turn ON GPS/Location Services and try again.';
                             break;
                         case 3: // TIMEOUT
-                            errorMsg = '⏱️ Location Timed Out';
+                            errorMsg = '⏱️ Location Request Timed Out';
                             suggestion = 'Please move to an open area for better GPS signal.';
                             break;
                         default:
                             errorMsg = '❌ Unknown Error';
-                            suggestion = 'Please try again or check your location settings.';
+                            suggestion = 'Please try again or check your settings.';
                     }
 
                     status.className = 'status error';
-                    status.innerHTML = `${errorMsg}<br><small>${suggestion}</small>`;
-                    
+                    status.innerHTML = `${errorMsg}<br><span class="small">${suggestion}</span>`;
+
                     // Show alert for permission
                     if (error.code === 1) {
-                        setTimeout(() => {
-                            alert('📍 Location Permission Required\n\nPlease allow location access:\n\nAndroid: Settings → Apps → Chrome → Permissions → Location → Allow\n\niPhone: Settings → Privacy → Location Services → Safari → Allow\n\nThen refresh and try again.');
+                        setTimeout(function() {
+                            const isAndroid = navigator.userAgent.toLowerCase().includes('android');
+                            const isIOS = navigator.userAgent.toLowerCase().includes('iphone') || 
+                                         navigator.userAgent.toLowerCase().includes('ipad');
+                            
+                            let msg = '📍 Location Permission Required\n\n';
+                            if (isAndroid) {
+                                msg += 'Android:\nSettings → Apps → Chrome → Permissions → Location → Allow\n\nThen refresh and try again.';
+                            } else if (isIOS) {
+                                msg += 'iPhone:\nSettings → Privacy → Location Services → Safari → Allow\n\nThen refresh and try again.';
+                            } else {
+                                msg += 'Please allow location access in your browser settings.\n\nThen refresh and try again.';
+                            }
+                            alert(msg);
                         }, 500);
                     }
                 },
@@ -347,16 +547,25 @@
             );
         });
 
-        // Auto-detect if previously granted
+        // --- Auto-detect if previously granted ---
         if (localStorage.getItem('locationGranted') === 'true') {
-            setTimeout(() => {
+            setTimeout(function() {
                 btn.click();
-            }, 1000);
+            }, 800);
         }
 
+        // --- Console Log ---
         console.log('📍 Location Test App Loaded');
         console.log('🔒 Protocol:', window.location.protocol);
         console.log('🌐 Hostname:', window.location.hostname);
+        console.log('📱 User Agent:', navigator.userAgent);
+
+        // --- Show more info in console ---
+        if (window.location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+            console.warn('⚠️ Location may not work without HTTPS!');
+        }
+
+        console.log('✅ Ready to detect location');
     </script>
 </body>
 </html>
