@@ -1,7 +1,7 @@
 /* =========================================================
    EARTHPULSE
    GLOBAL WEATHER & EARTH MONITOR
-   FULL UPDATED SCRIPT
+   FULL SCRIPT - TIMEZONE FIXED
 ========================================================= */
 
 
@@ -94,19 +94,11 @@ const NOMINATIM_REVERSE_API =
 function showLandingPage() {
 
     if (landingPage) {
-
-        landingPage.classList.remove(
-            "hidden"
-        );
-
+        landingPage.classList.remove("hidden");
     }
 
     if (dashboard) {
-
-        dashboard.classList.add(
-            "hidden"
-        );
-
+        dashboard.classList.add("hidden");
     }
 
 }
@@ -115,19 +107,11 @@ function showLandingPage() {
 function showDashboard() {
 
     if (landingPage) {
-
-        landingPage.classList.add(
-            "hidden"
-        );
-
+        landingPage.classList.add("hidden");
     }
 
     if (dashboard) {
-
-        dashboard.classList.remove(
-            "hidden"
-        );
-
+        dashboard.classList.remove("hidden");
     }
 
     window.scrollTo({
@@ -163,14 +147,21 @@ function useCurrentLocation() {
 
         async function(position) {
 
+            const latitude =
+                position.coords.latitude;
+
+            const longitude =
+                position.coords.longitude;
+
+
             console.log(
                 "GPS Latitude:",
-                position.coords.latitude
+                latitude
             );
 
             console.log(
                 "GPS Longitude:",
-                position.coords.longitude
+                longitude
             );
 
             console.log(
@@ -178,13 +169,6 @@ function useCurrentLocation() {
                 position.coords.accuracy,
                 "meters"
             );
-
-
-            const latitude =
-                position.coords.latitude;
-
-            const longitude =
-                position.coords.longitude;
 
 
             currentLatitude =
@@ -217,12 +201,6 @@ function useCurrentLocation() {
                     "Current Location";
 
 
-                console.log(
-                    "Detected location:",
-                    location
-                );
-
-
                 showDashboard();
 
 
@@ -244,12 +222,6 @@ function useCurrentLocation() {
                     error
                 );
 
-
-                /*
-                 * GPS coordinates পাওয়া গেছে,
-                 * তাই reverse geocoding fail হলেও
-                 * coordinates দিয়েই weather load হবে।
-                 */
 
                 const fallbackLocation = {
 
@@ -281,7 +253,12 @@ function useCurrentLocation() {
                         latitude,
 
                     longitude:
-                        longitude
+                        longitude,
+
+                    timezone:
+                        Intl.DateTimeFormat()
+                            .resolvedOptions()
+                            .timeZone
 
                 };
 
@@ -318,9 +295,7 @@ function useCurrentLocation() {
             );
 
 
-            if (
-                error.code === 1
-            ) {
+            if (error.code === 1) {
 
                 showLocationMessage(
                     "❌ Location permission denied. Please allow location access for EarthPulse."
@@ -328,9 +303,7 @@ function useCurrentLocation() {
 
             }
 
-            else if (
-                error.code === 2
-            ) {
+            else if (error.code === 2) {
 
                 showLocationMessage(
                     "❌ Location unavailable. Turn ON your device Location/GPS and try again."
@@ -338,9 +311,7 @@ function useCurrentLocation() {
 
             }
 
-            else if (
-                error.code === 3
-            ) {
+            else if (error.code === 3) {
 
                 showLocationMessage(
                     "❌ Location detection timed out. Turn ON GPS and try again."
@@ -476,7 +447,10 @@ async function reverseGeocode(
                 Number(latitude),
 
             longitude:
-                Number(longitude)
+                Number(longitude),
+
+            timezone:
+                null
 
         };
 
@@ -520,7 +494,10 @@ async function reverseGeocode(
                 Number(latitude),
 
             longitude:
-                Number(longitude)
+                Number(longitude),
+
+            timezone:
+                null
 
         };
 
@@ -577,14 +554,14 @@ async function searchLocation(
             );
 
 
-        const nominatimSettlementResults =
+        const settlementResults =
             await searchNominatim(
                 search,
                 "settlement"
             );
 
 
-        const nominatimAddressResults =
+        const addressResults =
             await searchNominatim(
                 search,
                 null
@@ -596,9 +573,9 @@ async function searchLocation(
 
                 ...openMeteoResults,
 
-                ...nominatimSettlementResults,
+                ...settlementResults,
 
-                ...nominatimAddressResults
+                ...addressResults
 
             ]);
 
@@ -729,7 +706,7 @@ async function searchLocation(
 
 
 /* =========================================================
-   OPEN-METEO SEARCH
+   OPEN METEO SEARCH
 ========================================================= */
 
 async function searchOpenMeteo(
@@ -826,6 +803,10 @@ async function searchOpenMeteo(
                         Number(
                             place.longitude
                         ),
+
+                    timezone:
+                        place.timezone ||
+                        null,
 
                     type:
                         place.feature_code ||
@@ -1012,6 +993,9 @@ async function searchNominatim(
                             place.lon
                         ),
 
+                    timezone:
+                        null,
+
                     type:
                         place.type ||
                         "",
@@ -1042,7 +1026,7 @@ async function searchNominatim(
 
 
 /* =========================================================
-   MERGE LOCATION RESULTS
+   MERGE RESULTS
 ========================================================= */
 
 function mergeLocationResults(
@@ -1056,12 +1040,8 @@ function mergeLocationResults(
     results.forEach(
         function(place) {
 
-            if (
-                !place
-            ) {
-
+            if (!place) {
                 return;
-
             }
 
 
@@ -1072,9 +1052,7 @@ function mergeLocationResults(
                     )
                 )
             ) {
-
                 return;
-
             }
 
 
@@ -1085,9 +1063,7 @@ function mergeLocationResults(
                     )
                 )
             ) {
-
                 return;
-
             }
 
 
@@ -1292,68 +1268,33 @@ function getLocationType(
     place
 ) {
 
-    if (
-        place.village
-    ) {
-
+    if (place.village) {
         return "Village";
-
     }
 
-
-    if (
-        place.town
-    ) {
-
+    if (place.town) {
         return "Town";
-
     }
 
-
-    if (
-        place.city
-    ) {
-
+    if (place.city) {
         return "City";
-
     }
 
-
-    if (
-        place.district
-    ) {
-
+    if (place.district) {
         return "District";
-
     }
 
-
-    if (
-        place.state
-    ) {
-
+    if (place.state) {
         return "State / Province";
-
     }
 
-
-    if (
-        place.postcode
-    ) {
-
+    if (place.postcode) {
         return "Postal Area";
-
     }
 
-
-    if (
-        place.country
-    ) {
-
+    if (place.country) {
         return "Country";
-
     }
-
 
     return "Location";
 
@@ -1423,15 +1364,14 @@ async function loadSelectedLocation(
             currentLatitude,
 
         longitude:
-            currentLongitude
+            currentLongitude,
+
+        timezone:
+            place.timezone ||
+            null
 
     };
 
-
-    /*
-     * Missing details থাকলে coordinates
-     * দিয়ে আবার reverse geocode করা হবে।
-     */
 
     if (
         !currentLocationData.district ||
@@ -1605,6 +1545,22 @@ async function loadWeather(
         await response.json();
 
 
+    /*
+     * IMPORTANT:
+     * Open-Meteo returns the timezone
+     * of the searched/current coordinates.
+     */
+
+    location.timezone =
+        data.timezone ||
+        location.timezone ||
+        "UTC";
+
+
+    currentLocationData =
+        location;
+
+
     updateLocationInformation(
         location,
         data
@@ -1649,6 +1605,13 @@ async function loadWeather(
     createRainChart(
         data
     );
+
+
+    /*
+     * Start/update the correct local clock.
+     */
+
+    updateLiveLocalTime();
 
 }
 
@@ -1803,9 +1766,7 @@ function updateCurrentWeather(
 
 
     if (!current) {
-
         return;
-
     }
 
 
@@ -1917,9 +1878,7 @@ function updateHourlyForecast(
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -1928,9 +1887,7 @@ function updateHourlyForecast(
 
 
     if (!hourly) {
-
         return;
-
     }
 
 
@@ -1952,9 +1909,7 @@ function updateHourlyForecast(
             );
 
 
-        if (
-            index >= 0
-        ) {
+        if (index >= 0) {
 
             startIndex =
                 index;
@@ -1987,21 +1942,9 @@ function updateHourlyForecast(
             "hour-card";
 
 
-        const date =
-            new Date(
-                hourly.time[i]
-            );
-
-
         const hour =
-            date.toLocaleTimeString(
-                "en-IN",
-                {
-                    hour:
-                        "numeric",
-                    minute:
-                        "2-digit"
-                }
+            formatTime(
+                hourly.time[i]
             );
 
 
@@ -2026,8 +1969,7 @@ function updateHourlyForecast(
 
             <div class="rain-probability">
                 🌧 ${
-                    hourly
-                        .precipitation_probability[i]
+                    hourly.precipitation_probability[i]
                     ?? 0
                 }%
             </div>
@@ -2059,9 +2001,7 @@ function updateDailyForecast(
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -2070,9 +2010,7 @@ function updateDailyForecast(
 
 
     if (!daily) {
-
         return;
-
     }
 
 
@@ -2144,8 +2082,7 @@ function updateDailyForecast(
 
             <div class="daily-rain">
                 🌧 ${
-                    daily
-                        .precipitation_probability_max[i]
+                    daily.precipitation_probability_max[i]
                     ?? 0
                 }%
             </div>
@@ -2175,9 +2112,7 @@ function updateSunInformation(
 
 
     if (!daily) {
-
         return;
-
     }
 
 
@@ -2209,20 +2144,113 @@ function updateSunInformation(
     }
 
 
+    updateLiveLocalTime();
+
+}
+
+
+/* =========================================================
+   LIVE LOCAL TIME
+========================================================= */
+
+function updateLiveLocalTime() {
+
     if (
-        data.current?.time
+        !currentLocationData
     ) {
+        return;
+    }
+
+
+    const timezone =
+        currentLocationData.timezone ||
+        "UTC";
+
+
+    const now =
+        new Date();
+
+
+    try {
+
+        const formatted =
+            new Intl.DateTimeFormat(
+                "en-IN",
+                {
+
+                    timeZone:
+                        timezone,
+
+                    hour:
+                        "numeric",
+
+                    minute:
+                        "2-digit",
+
+                    second:
+                        "2-digit",
+
+                    hour12:
+                        true
+
+                }
+            ).format(now);
+
 
         setText(
             "dashboardLocalTime",
-            formatTime(
-                data.current.time
-            )
+            formatted
+        );
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "Timezone error:",
+            error
+        );
+
+
+        const fallback =
+            new Intl.DateTimeFormat(
+                "en-IN",
+                {
+
+                    hour:
+                        "numeric",
+
+                    minute:
+                        "2-digit",
+
+                    second:
+                        "2-digit",
+
+                    hour12:
+                        true
+
+                }
+            ).format(now);
+
+
+        setText(
+            "dashboardLocalTime",
+            fallback
         );
 
     }
 
 }
+
+
+/* =========================================================
+   UPDATE CLOCK EVERY SECOND
+========================================================= */
+
+setInterval(
+    updateLiveLocalTime,
+    1000
+);
 
 
 /* =========================================================
@@ -2241,9 +2269,7 @@ function updateUV(
         uv === undefined ||
         uv === null
     ) {
-
         return;
-
     }
 
 
@@ -2330,9 +2356,7 @@ function createTemperatureChart(
 
 
     if (!canvas) {
-
         return;
-
     }
 
 
@@ -2364,9 +2388,7 @@ function createTemperatureChart(
 
 
     if (!hourly) {
-
         return;
-
     }
 
 
@@ -2384,9 +2406,7 @@ function createTemperatureChart(
             );
 
 
-        if (
-            index >= 0
-        ) {
+        if (index >= 0) {
 
             startIndex =
                 index;
@@ -2414,19 +2434,9 @@ function createTemperatureChart(
         i++
     ) {
 
-        const date =
-            new Date(
-                hourly.time[i]
-            );
-
-
         labels.push(
-            date.toLocaleTimeString(
-                "en-IN",
-                {
-                    hour:
-                        "numeric"
-                }
+            formatTime(
+                hourly.time[i]
             )
         );
 
@@ -2504,9 +2514,7 @@ function createRainChart(
 
 
     if (!canvas) {
-
         return;
-
     }
 
 
@@ -2538,9 +2546,7 @@ function createRainChart(
 
 
     if (!hourly) {
-
         return;
-
     }
 
 
@@ -2558,9 +2564,7 @@ function createRainChart(
             );
 
 
-        if (
-            index >= 0
-        ) {
+        if (index >= 0) {
 
             startIndex =
                 index;
@@ -2588,26 +2592,15 @@ function createRainChart(
         i++
     ) {
 
-        const date =
-            new Date(
-                hourly.time[i]
-            );
-
-
         labels.push(
-            date.toLocaleTimeString(
-                "en-IN",
-                {
-                    hour:
-                        "numeric"
-                }
+            formatTime(
+                hourly.time[i]
             )
         );
 
 
         rain.push(
-            hourly
-                .precipitation_probability[i]
+            hourly.precipitation_probability[i]
             ?? 0
         );
 
@@ -2712,9 +2705,7 @@ async function loadAirQuality(
 
 
     if (!current) {
-
         return;
-
     }
 
 
@@ -2729,8 +2720,7 @@ async function loadAirQuality(
     setText(
         "pm25",
         Number(
-            current.pm2_5 ??
-            0
+            current.pm2_5 ?? 0
         ).toFixed(1)
     );
 
@@ -2738,8 +2728,7 @@ async function loadAirQuality(
     setText(
         "pm10",
         Number(
-            current.pm10 ??
-            0
+            current.pm10 ?? 0
         ).toFixed(1)
     );
 
@@ -2747,8 +2736,7 @@ async function loadAirQuality(
     setText(
         "ozone",
         Number(
-            current.ozone ??
-            0
+            current.ozone ?? 0
         ).toFixed(1)
     );
 
@@ -2756,8 +2744,7 @@ async function loadAirQuality(
     setText(
         "no2",
         Number(
-            current.nitrogen_dioxide ??
-            0
+            current.nitrogen_dioxide ?? 0
         ).toFixed(1)
     );
 
@@ -2784,54 +2771,32 @@ function getAQIStatus(
         aqi === null ||
         aqi === undefined
     ) {
-
         return "--";
-
     }
 
 
-    if (
-        aqi <= 50
-    ) {
-
+    if (aqi <= 50) {
         return "Good";
-
     }
 
 
-    if (
-        aqi <= 100
-    ) {
-
+    if (aqi <= 100) {
         return "Moderate";
-
     }
 
 
-    if (
-        aqi <= 150
-    ) {
-
+    if (aqi <= 150) {
         return "Unhealthy for Sensitive Groups";
-
     }
 
 
-    if (
-        aqi <= 200
-    ) {
-
+    if (aqi <= 200) {
         return "Unhealthy";
-
     }
 
 
-    if (
-        aqi <= 300
-    ) {
-
+    if (aqi <= 300) {
         return "Very Unhealthy";
-
     }
 
 
@@ -2853,9 +2818,7 @@ async function loadEarthquakes() {
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -3016,9 +2979,7 @@ function updateStormInformation(
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -3107,7 +3068,7 @@ function updateStormInformation(
 
 
 /* =========================================================
-   RECENT SEARCH
+   RECENT SEARCHES
 ========================================================= */
 
 function saveRecentSearch(
@@ -3161,7 +3122,11 @@ function saveRecentSearch(
                 location.latitude,
 
             longitude:
-                location.longitude
+                location.longitude,
+
+            timezone:
+                location.timezone ||
+                null
 
         };
 
@@ -3231,9 +3196,7 @@ function displayRecentSearches() {
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -3427,9 +3390,7 @@ function displayFavorites() {
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -3685,9 +3646,7 @@ function showEarthquakeError() {
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -3818,9 +3777,7 @@ function weatherCodeToEmoji(
     isDay = 1
 ) {
 
-    if (
-        code === 0
-    ) {
+    if (code === 0) {
 
         return isDay
             ? "☀️"
@@ -3841,9 +3798,7 @@ function weatherCodeToEmoji(
     }
 
 
-    if (
-        code === 3
-    ) {
+    if (code === 3) {
 
         return "☁️";
 
@@ -3910,9 +3865,7 @@ function weatherCodeToEmoji(
     }
 
 
-    if (
-        code >= 95
-    ) {
+    if (code >= 95) {
 
         return "⛈️";
 
@@ -3990,6 +3943,11 @@ function normalizeText(
 }
 
 
+/* =========================================================
+   TIME FUNCTIONS
+   IMPORTANT TIMEZONE FIX
+========================================================= */
+
 function formatTime(
     value
 ) {
@@ -4001,20 +3959,31 @@ function formatTime(
     }
 
 
-    const date =
-        new Date(value);
+    /*
+     * Open-Meteo returns local time because
+     * timezone=auto is used.
+     *
+     * Therefore we DO NOT use new Date()
+     * here, because that can convert the time
+     * into the device timezone.
+     */
+
+    const text =
+        String(value);
 
 
-    return date.toLocaleTimeString(
-        "en-IN",
-        {
-            hour:
-                "numeric",
+    if (
+        text.includes("T")
+    ) {
 
-            minute:
-                "2-digit"
-        }
-    );
+        return text
+            .split("T")[1]
+            .slice(0, 5);
+
+    }
+
+
+    return text;
 
 }
 
@@ -4030,33 +3999,63 @@ function formatDateTime(
     }
 
 
+    const text =
+        String(value);
+
+
+    const parts =
+        text.split("T");
+
+
+    if (
+        parts.length < 2
+    ) {
+
+        return text;
+
+    }
+
+
+    const datePart =
+        parts[0];
+
+
+    const timePart =
+        parts[1].slice(
+            0,
+            5
+        );
+
+
     const date =
-        new Date(value);
+        new Date(
+            `${datePart}T12:00:00`
+        );
 
 
-    return date.toLocaleString(
-        "en-IN",
-        {
+    const formattedDate =
+        date.toLocaleDateString(
+            "en-IN",
+            {
 
-            weekday:
-                "long",
+                weekday:
+                    "long",
 
-            day:
-                "numeric",
+                day:
+                    "numeric",
 
-            month:
-                "long",
+                month:
+                    "long",
 
-            year:
-                "numeric",
+                year:
+                    "numeric"
 
-            hour:
-                "numeric",
+            }
+        );
 
-            minute:
-                "2-digit"
 
-        }
+    return (
+        `${formattedDate}, ${timePart}`
     );
 
 }
@@ -4171,7 +4170,10 @@ if (
                             currentLatitude,
 
                         longitude:
-                            currentLongitude
+                            currentLongitude,
+
+                        timezone:
+                            "UTC"
 
                     }
 
