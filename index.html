@@ -15,27 +15,33 @@
         content="EarthPulse - Global Weather, Earthquake, Storm and Environmental Monitor"
     >
 
-    <meta
-        name="theme-color"
-        content="#07111f"
-    >
-
     <title>EarthPulse | Global Weather & Earth Monitor</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
     <!-- Leaflet Map -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIINfQ3wFhL7x3e6F8g5xQ4F2z7L7N5jF4="
-        crossorigin=""
     >
+
+    <!-- Chart.js -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 
 <body>
+
 
 <!-- =====================================================
      LANDING PAGE
@@ -78,8 +84,7 @@
             class="location-btn"
             type="button"
         >
-            <span>📍</span>
-            Use Current Location
+            📍 Use Current Location
         </button>
 
 
@@ -100,7 +105,6 @@
             <button
                 id="searchBtn"
                 type="button"
-                aria-label="Search location"
             >
                 🔍
             </button>
@@ -110,14 +114,14 @@
 
         <div
             id="searchResults"
-            class="search-results"
-        ></div>
+            class="search-results">
+        </div>
 
 
         <p
             id="locationMessage"
-            class="location-message"
-        ></p>
+            class="location-message">
+        </p>
 
     </div>
 
@@ -134,6 +138,8 @@
     class="dashboard hidden"
 >
 
+
+<!-- HEADER -->
 
 <header class="top-header">
 
@@ -156,8 +162,8 @@
 
         <button
             id="myLocationBtn"
-            type="button"
             class="header-btn"
+            type="button"
         >
             📍 My Location
         </button>
@@ -165,8 +171,8 @@
 
         <button
             id="refreshBtn"
-            type="button"
             class="header-btn"
+            type="button"
         >
             🔄 Refresh
         </button>
@@ -202,8 +208,8 @@
 
     <div
         id="dashboardSearchResults"
-        class="search-results"
-    ></div>
+        class="search-results">
+    </div>
 
 </section>
 
@@ -214,17 +220,19 @@
 <section class="location-header">
 
     <div class="location-label">
-        📍
-        <span>SELECTED LOCATION</span>
+        📍 SELECTED LOCATION
     </div>
+
 
     <h2 id="locationName">
         Loading location...
     </h2>
 
+
     <p id="locationDetails">
         --
     </p>
+
 
     <p id="localDateTime">
         --
@@ -242,8 +250,7 @@
 
         <div
             id="weatherIcon"
-            class="weather-icon"
-        >
+            class="weather-icon">
             ☀️
         </div>
 
@@ -263,8 +270,7 @@
 
             <div
                 id="weatherCondition"
-                class="weather-condition"
-            >
+                class="weather-condition">
                 Loading weather...
             </div>
 
@@ -290,56 +296,56 @@
     <div class="weather-details">
 
         <div class="weather-card">
-            <span class="card-icon">💧</span>
+            <span>💧</span>
             <small>Humidity</small>
             <strong id="humidity">--%</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">🌧️</span>
+            <span>🌧️</span>
             <small>Rain</small>
             <strong id="rain">--%</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">💨</span>
+            <span>💨</span>
             <small>Wind</small>
             <strong id="wind">-- km/h</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">☁️</span>
+            <span>☁️</span>
             <small>Clouds</small>
             <strong id="clouds">--%</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">🧭</span>
+            <span>🧭</span>
             <small>Wind Direction</small>
             <strong id="windDirection">--</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">👁️</span>
+            <span>👁️</span>
             <small>Visibility</small>
             <strong id="visibility">-- km</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">🧱</span>
+            <span>🧱</span>
             <small>Pressure</small>
             <strong id="pressure">-- hPa</strong>
         </div>
 
 
         <div class="weather-card">
-            <span class="card-icon">☀️</span>
+            <span>☀️</span>
             <small>UV Index</small>
             <strong id="uvIndex">--</strong>
         </div>
@@ -373,18 +379,14 @@
 
     <div
         id="hourlyForecast"
-        class="hourly-container"
-    >
-        <div class="loading-message">
-            Loading hourly forecast...
-        </div>
+        class="hourly-container">
     </div>
 
 </section>
 
 
 
-<!-- TEMPERATURE GRAPH -->
+<!-- TEMPERATURE CHART -->
 
 <section class="weather-section">
 
@@ -406,14 +408,16 @@
 
 
     <div class="chart-container">
+
         <canvas id="temperatureChart"></canvas>
+
     </div>
 
 </section>
 
 
 
-<!-- RAIN GRAPH -->
+<!-- RAIN CHART -->
 
 <section class="weather-section">
 
@@ -435,7 +439,9 @@
 
 
     <div class="chart-container">
+
         <canvas id="rainChart"></canvas>
+
     </div>
 
 </section>
@@ -465,11 +471,7 @@
 
     <div
         id="dailyForecast"
-        class="daily-container"
-    >
-        <div class="loading-message">
-            Loading 7-day forecast...
-        </div>
+        class="daily-container">
     </div>
 
 </section>
@@ -481,23 +483,35 @@
 <section class="sun-section">
 
     <div class="info-card">
-        <span class="info-icon">🌅</span>
+
+        <span>🌅</span>
+
         <small>Sunrise</small>
+
         <strong id="sunrise">--</strong>
+
     </div>
 
 
     <div class="info-card">
-        <span class="info-icon">🌇</span>
+
+        <span>🌇</span>
+
         <small>Sunset</small>
+
         <strong id="sunset">--</strong>
+
     </div>
 
 
     <div class="info-card">
-        <span class="info-icon">🕐</span>
+
+        <span>🕐</span>
+
         <small>Local Time</small>
+
         <strong id="dashboardLocalTime">--</strong>
+
     </div>
 
 </section>
@@ -528,7 +542,11 @@
     <div class="uv-card">
 
         <div class="uv-number">
-            <span id="uvLarge">--</span>
+
+            <span id="uvLarge">
+                --
+            </span>
+
         </div>
 
 
@@ -550,7 +568,7 @@
 
 
 
-<!-- AIR -->
+<!-- AIR QUALITY -->
 
 <section class="weather-section">
 
@@ -609,34 +627,108 @@
 
 
 
-<!-- EARTHQUAKES -->
+<!-- =====================================================
+     INTERACTIVE EARTH MAP
+====================================================== -->
 
-<section class="weather-section">
+<section class="weather-section map-section">
 
     <div class="section-header">
 
         <div>
 
             <span class="section-kicker">
-                EARTH MONITOR
+                GLOBAL MONITOR
             </span>
 
             <h2>
-                🌎 Recent Earthquakes
+                🗺️ Interactive Earth Map
             </h2>
+
+            <p class="map-subtitle">
+                Real-time location and earthquake monitoring.
+            </p>
 
         </div>
 
     </div>
 
 
-    <div
-        id="earthquakeList"
-        class="event-list"
-    >
-        <div class="loading-message">
-            Loading earthquake information...
+    <div class="map-wrapper">
+
+
+        <!-- MAP LAYER MENU -->
+
+        <div class="map-layers">
+
+            <button
+                class="map-layer active"
+                data-layer="standard">
+                🗺️ Standard
+            </button>
+
+
+            <button
+                class="map-layer"
+                data-layer="satellite">
+                🛰️ Satellite
+            </button>
+
+
+            <button
+                class="map-layer"
+                data-layer="earthquakes">
+                🌎 Earthquakes
+            </button>
+
         </div>
+
+
+        <!-- MAP SEARCH -->
+
+        <div class="map-search">
+
+            <input
+                id="mapSearch"
+                type="text"
+                placeholder="Search location on map..."
+            >
+
+            <button
+                id="mapSearchBtn"
+                type="button">
+                🔍
+            </button>
+
+        </div>
+
+
+        <!-- MAP -->
+
+        <div
+            id="map"
+            class="map-container">
+        </div>
+
+
+        <!-- MAP INFO -->
+
+        <div class="map-info">
+
+            <span>
+                📍 Current/Search Location
+            </span>
+
+            <span>
+                🌎 Earthquake markers
+            </span>
+
+            <span>
+                🗺️ OpenStreetMap
+            </span>
+
+        </div>
+
     </div>
 
 </section>
@@ -666,122 +758,42 @@
 
     <div
         id="stormAlerts"
-        class="alert-box"
-    >
+        class="alert-box">
+
         Checking severe weather information...
+
     </div>
 
 </section>
 
 
 
-<!-- =====================================================
-     ADVANCED MAP
-====================================================== -->
+<!-- EARTHQUAKES -->
 
-<section class="weather-section map-section">
+<section class="weather-section">
 
     <div class="section-header">
 
         <div>
 
             <span class="section-kicker">
-                GLOBAL MONITOR
+                EARTH MONITOR
             </span>
 
             <h2>
-                🗺️ Interactive Earth Map
+                🌎 Recent Earthquakes
             </h2>
 
-            <p class="map-subtitle">
-                Explore locations, weather and recent earthquakes
-            </p>
-
         </div>
 
     </div>
 
 
-    <!-- MAP CONTROLS -->
+    <div
+        id="earthquakeList"
+        class="event-list">
 
-    <div class="map-controls">
-
-        <button
-            class="map-control active"
-            data-layer="standard"
-            type="button"
-        >
-            🗺️ Map
-        </button>
-
-
-        <button
-            class="map-control"
-            data-layer="temperature"
-            type="button"
-        >
-            🌡️ Temperature
-        </button>
-
-
-        <button
-            class="map-control"
-            data-layer="earthquakes"
-            type="button"
-        >
-            🌎 Earthquakes
-        </button>
-
-
-        <button
-            id="mapMyLocation"
-            class="map-control"
-            type="button"
-        >
-            📍 My Location
-        </button>
-
-    </div>
-
-
-    <!-- MAP -->
-
-    <div class="map-wrapper">
-
-        <div
-            id="map"
-            class="map-container"
-        ></div>
-
-
-        <div class="map-info-panel">
-
-            <div class="map-info-title">
-                🌍 EarthPulse Monitor
-            </div>
-
-            <div id="mapInfoText">
-                Select a location or earthquake marker
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="map-legend">
-
-        <span>
-            📍 Selected Location
-        </span>
-
-        <span>
-            🌎 Earthquake
-        </span>
-
-        <span>
-            🔵 Weather Monitor
-        </span>
+        Loading earthquake information...
 
     </div>
 
@@ -811,9 +823,10 @@
         <button
             id="addFavoriteBtn"
             class="small-action-btn"
-            type="button"
-        >
+            type="button">
+
             ⭐ Add Favorite
+
         </button>
 
     </div>
@@ -821,11 +834,10 @@
 
     <div
         id="favoritesList"
-        class="favorites-list"
-    >
-        <p>
-            No favorite locations yet.
-        </p>
+        class="favorites-list">
+
+        <p>No favorite locations yet.</p>
+
     </div>
 
 </section>
@@ -854,9 +866,10 @@
         <button
             id="clearHistoryBtn"
             class="small-action-btn"
-            type="button"
-        >
+            type="button">
+
             Clear
+
         </button>
 
     </div>
@@ -864,11 +877,9 @@
 
     <div
         id="recentSearches"
-        class="recent-searches"
-    >
-        <p>
-            No recent searches.
-        </p>
+        class="recent-searches">
+
+        <p>No recent searches.</p>
 
     </div>
 
@@ -917,25 +928,16 @@
 
 </footer>
 
+
 </main>
 
 
-
-<!-- Leaflet -->
+<!-- Leaflet JS -->
 
 <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-></script>
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 
-
-<!-- Chart.js -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-<!-- EarthPulse -->
 
 <script src="script.js"></script>
 
