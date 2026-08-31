@@ -1,1 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="EarthPulse - Global Weather, Earthquake, Storm and Environmental Monitor"
+    >
+
+    <title>EarthPulse | Global Weather & Earth Monitor</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         LANDING PAGE
+    ====================================================== -->
+
+    <main id="landingPage" class="landing-page">
+
+        <div class="landing-card">
+
+            <!-- LOGO -->
+
+            <div class="logo-container">
+
+                <img
+                    src="earthpulse-logo.png"
+                    alt="EarthPulse Logo"
+                    class="main-logo"
+                >
+
+            </div>
+
+
+            <!-- BRAND NAME -->
+
+            <h1 class="brand-title">
+                Earth<span>Pulse</span>
+            </h1>
+
+
+            <!-- TAGLINE -->
+
+            <p class="tagline">
+                Know Your World. Feel Its Pulse.
+            </p>
+
+
+            <p class="landing-description">
+
+                Global weather, earthquakes, storms,
+                air quality and environmental information
+                in one place.
+
+            </p>
+
+
+            <!-- CURRENT LOCATION BUTTON -->
+
+            <button
+                id="currentLocationBtn"
+                class="location-btn"
+                type="button"
+            >
+
+                <span>📍</span>
+
+                Use Current Location
+
+            </button>
+
+
+            <!-- DIVIDER -->
+
+            <div class="or-divider">
+
+                <span>OR</span>
+
+            </div>
+
+
+            <!-- LOCATION SEARCH -->
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="locationSearch"
+                    placeholder="Search city, country or location..."
+                    autocomplete="off"
+                >
+
+                <button
+                    id="searchBtn"
+                    type="button"
+                    aria-label="Search location"
+                >
+
+                    🔍
+
+                </button>
+
+            </div>
+
+
+            <!-- SEARCH RESULTS -->
+
+            <div
+                id="searchResults"
+                class="search-results"
+            ></div>
+
+
+            <!-- LOCATION MESSAGE -->
+
+            <p
+                id="locationMessage"
+                class="location-message"
+            ></p>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =====================================================
+         MAIN DASHBOARD
+    ====================================================== -->
+
+    <main
+        id="dashboard"
+        class="dashboard hidden"
+    >
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="top-header">
+
+
+            <!-- BRAND -->
+
+            <div class="brand">
+
+                <img
+                    src="earthpulse-logo.png"
+                    alt="EarthPulse"
+                    class="header-logo"
+                >
+
+                <span>
+                    Earth<span>Pulse</span>
+                </span>
+
+            </div>
+
+
+            <!-- HEADER ACTIONS -->
+
+            <div class="header-actions">
+
+
+                <button
+                    id="myLocationBtn"
+                    type="button"
+                    class="header-btn"
+                >
+
+                    📍 My Location
+
+                </button>
+
+
+                <button
+                    id="refreshBtn"
+                    type="button"
+                    class="header-btn"
+                >
+
+                    🔄 Refresh
+
+                </button>
+
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             SEARCH SECTION
+        ================================================== -->
+
+        <section class="dashboard-search">
+
+
+            <div class="search-box dashboard-search-box">
+
+                <input
+                    type="text"
+                    id="dashboardSearch"
+                    placeholder="Search another city or country..."
+                    autocomplete="off"
+                >
+
+
+                <button
+                    id="dashboardSearchBtn"
+                    type="button"
+                    aria-label="Search"
+                >
+
+                    🔍
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="dashboardSearchResults"
+                class="search-results"
+            ></div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             LOCATION INFORMATION
+        ================================================== -->
+
+        <section class="location-header">
+
+
+            <div class="location-label">
+
+                📍
+
+                <span>
+                    SELECTED LOCATION
+                </span>
+
+            </div>
+
+
+            <h2 id="locationName">
+                Loading location...
+            </h2>
+
+
+            <p id="locationDetails">
+                --
+            </p>
+
+
+            <p id="localDateTime">
+                --
+            </p>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             CURRENT WEATHER
+        ================================================== -->
+
+        <section class="current-weather">
+
+
+            <div class="weather-main">
+
+
+                <div
+                    id="weatherIcon"
+                    class="weather-icon"
+                >
+
+                    ☀️
+
+                </div>
+
+
+                <div class="main-weather-info">
+
+
+                    <div class="temperature">
+
+                        <span id="temperature">
+                            --
+                        </span>
+
+                        <span>
+                            °C
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="weatherCondition"
+                        class="weather-condition"
+                    >
+
+                        Loading weather...
+
+                    </div>
+
+
+                    <div class="feels-like">
+
+                        Feels like
+
+                        <strong id="feelsLike">
+                            --
+                        </strong>
+
+                        °C
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- WEATHER DETAIL CARDS -->
+
+            <div class="weather-details">
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        💧
+                    </span>
+
+                    <small>
+                        Humidity
+                    </small>
+
+                    <strong id="humidity">
+                        --%
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        🌧️
+                    </span>
+
+                    <small>
+                        Rain
+                    </small>
+
+                    <strong id="rain">
+                        --%
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        💨
+                    </span>
+
+                    <small>
+                        Wind
+                    </small>
+
+                    <strong id="wind">
+                        -- km/h
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        ☁️
+                    </span>
+
+                    <small>
+                        Clouds
+                    </small>
+
+                    <strong id="clouds">
+                        --%
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        🧭
+                    </span>
+
+                    <small>
+                        Wind Direction
+                    </small>
+
+                    <strong id="windDirection">
+                        --
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        👁️
+                    </span>
+
+                    <small>
+                        Visibility
+                    </small>
+
+                    <strong id="visibility">
+                        -- km
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        🧱
+                    </span>
+
+                    <small>
+                        Pressure
+                    </small>
+
+                    <strong id="pressure">
+                        -- hPa
+                    </strong>
+
+                </div>
+
+
+
+                <div class="weather-card">
+
+                    <span class="card-icon">
+                        ☀️
+                    </span>
+
+                    <small>
+                        UV Index
+                    </small>
+
+                    <strong id="uvIndex">
+                        --
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             HOURLY FORECAST
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        WEATHER FORECAST
+                    </span>
+
+                    <h2>
+                        🕐 Hourly Forecast
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="hourlyForecast"
+                class="hourly-container"
+            >
+
+                <div class="loading-message">
+                    Loading hourly forecast...
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             TEMPERATURE GRAPH
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        TEMPERATURE
+                    </span>
+
+                    <h2>
+                        🌡️ Temperature Trend
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-container">
+
+                <canvas
+                    id="temperatureChart"
+                ></canvas>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             RAIN GRAPH
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        PRECIPITATION
+                    </span>
+
+                    <h2>
+                        🌧️ Rain Probability
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-container">
+
+                <canvas
+                    id="rainChart"
+                ></canvas>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             7 DAY FORECAST
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        EXTENDED FORECAST
+                    </span>
+
+                    <h2>
+                        📅 7-Day Forecast
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="dailyForecast"
+                class="daily-container"
+            >
+
+                <div class="loading-message">
+                    Loading 7-day forecast...
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             SUN INFORMATION
+        ================================================== -->
+
+        <section class="sun-section">
+
+
+            <div class="info-card">
+
+                <span class="info-icon">
+                    🌅
+                </span>
+
+                <small>
+                    Sunrise
+                </small>
+
+                <strong id="sunrise">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <span class="info-icon">
+                    🌇
+                </span>
+
+                <small>
+                    Sunset
+                </small>
+
+                <strong id="sunset">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <span class="info-icon">
+                    🕐
+                </span>
+
+                <small>
+                    Local Time
+                </small>
+
+                <strong id="dashboardLocalTime">
+                    --
+                </strong>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             UV INDEX
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        SUN EXPOSURE
+                    </span>
+
+                    <h2>
+                        ☀️ UV Index
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="uv-card">
+
+
+                <div class="uv-number">
+
+                    <span id="uvLarge">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="uv-info">
+
+                    <h3 id="uvStatus">
+                        Checking...
+                    </h3>
+
+                    <p>
+                        Current ultraviolet radiation level
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             AIR QUALITY
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        ENVIRONMENT
+                    </span>
+
+                    <h2>
+                        🌫️ Air Quality
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="air-quality-card">
+
+
+                <div class="air-item">
+
+                    <small>
+                        AQI
+                    </small>
+
+                    <strong id="aqi">
+                        --
+                    </strong>
+
+                    <span id="aqiStatus">
+                        --
+                    </span>
+
+                </div>
+
+
+                <div class="air-item">
+
+                    <small>
+                        PM2.5
+                    </small>
+
+                    <strong id="pm25">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="air-item">
+
+                    <small>
+                        PM10
+                    </small>
+
+                    <strong id="pm10">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="air-item">
+
+                    <small>
+                        O₃
+                    </small>
+
+                    <strong id="ozone">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="air-item">
+
+                    <small>
+                        NO₂
+                    </small>
+
+                    <strong id="no2">
+                        --
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             EARTHQUAKE MONITOR
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        EARTH MONITOR
+                    </span>
+
+                    <h2>
+                        🌎 Recent Earthquakes
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="earthquakeList"
+                class="event-list"
+            >
+
+                <div class="loading-message">
+
+                    Loading earthquake information...
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             STORM & ALERTS
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        SAFETY MONITOR
+                    </span>
+
+                    <h2>
+                        🌪️ Storm & Weather Alerts
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="stormAlerts"
+                class="alert-box"
+            >
+
+                Checking severe weather information...
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             GLOBAL MAP
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        GLOBAL MONITOR
+                    </span>
+
+                    <h2>
+                        🗺️ Interactive Earth Map
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="map"
+                class="map-container"
+            >
+
+                <div class="map-placeholder">
+
+                    <div class="map-icon">
+                        🌍
+                    </div>
+
+                    <h3>
+                        Global Earth Monitor
+                    </h3>
+
+                    <p>
+                        Interactive weather, earthquake and
+                        storm map will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             FAVORITES
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        SAVED LOCATIONS
+                    </span>
+
+                    <h2>
+                        ⭐ Favorite Locations
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="addFavoriteBtn"
+                    class="small-action-btn"
+                    type="button"
+                >
+
+                    ⭐ Add Favorite
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="favoritesList"
+                class="favorites-list"
+            >
+
+                <p>
+                    No favorite locations yet.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             RECENT SEARCHES
+        ================================================== -->
+
+        <section class="weather-section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        SEARCH HISTORY
+                    </span>
+
+                    <h2>
+                        🕘 Recent Searches
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="clearHistoryBtn"
+                    class="small-action-btn"
+                    type="button"
+                >
+
+                    Clear
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="recentSearches"
+                class="recent-searches"
+            >
+
+                <p>
+                    No recent searches.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer class="site-footer">
+
+
+            <div class="footer-brand">
+
+
+                <img
+                    src="earthpulse-logo.png"
+                    alt="EarthPulse Logo"
+                    class="footer-logo"
+                >
+
+
+                <div>
+
+                    <h2>
+                        Earth<span>Pulse</span>
+                    </h2>
+
+                    <p>
+                        Global Weather & Earth Monitoring
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="footer-line"></div>
+
+
+            <p class="footer-tagline">
+
+                Planet Data. A Safer Tomorrow.
+
+            </p>
+
+
+            <p class="copyright">
+
+                © 2026 EarthPulse. All rights reserved.
+
+            </p>
+
+
+        </footer>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
