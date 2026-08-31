@@ -16,10 +16,15 @@ let selectedMarker = null;
 let earthquakeLayer = null;
 let temperatureLayer = null;
 
+let satelliteLayer = null;
+let labelsLayer = null;
+
 let temperatureChart = null;
 let rainChart = null;
 
 let lastWeatherData = null;
+
+let locationWatchId = null;
 
 let favorites = JSON.parse(
     localStorage.getItem("earthpulseFavorites") || "[]"
@@ -159,7 +164,9 @@ function setupButtons() {
 
         searchBtn.addEventListener(
             "click",
-            () => searchLocation(locationSearch.value)
+            () => searchLocation(
+                locationSearch?.value || ""
+            )
         );
 
     }
@@ -169,7 +176,9 @@ function setupButtons() {
 
         dashboardSearchBtn.addEventListener(
             "click",
-            () => searchLocation(dashboardSearch.value)
+            () => searchLocation(
+                dashboardSearch?.value || ""
+            )
         );
 
     }
@@ -238,9 +247,7 @@ function setupButtons() {
     document.querySelectorAll(".map-control").forEach(
         button => {
 
-            if (
-                button.id === "mapMyLocation"
-            ) {
+            if (button.id === "mapMyLocation") {
                 return;
             }
 
@@ -249,18 +256,12 @@ function setupButtons() {
                 () => {
 
                     document
-                        .querySelectorAll(
-                            ".map-control"
-                        )
+                        .querySelectorAll(".map-control")
                         .forEach(
-                            b => b.classList.remove(
-                                "active"
-                            )
+                            b => b.classList.remove("active")
                         );
 
-                    button.classList.add(
-                        "active"
-                    );
+                    button.classList.add("active");
 
                     const layer =
                         button.dataset.layer;
@@ -287,11 +288,14 @@ function initializeMap() {
 
     if (!mapElement) return;
 
+
     map = L.map(
         "map",
         {
-            zoomControl: true,
-            worldCopyJump: true
+            zoomControl: false,
+            worldCopyJump: true,
+            minZoom: 2,
+            maxZoom: 19
         }
     ).setView(
         [20, 0],
@@ -299,18 +303,59 @@ function initializeMap() {
     );
 
 
-    L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    /*
+       EARTH / GLOBE STYLE SATELLITE MAP
+    */
+
+    satelliteLayer =
+        L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                maxZoom: 19,
+                attribution:
+                    "Tiles &copy; Esri"
+            }
+        );
+
+
+    /*
+       PLACE LABELS ON TOP OF SATELLITE
+    */
+
+    labelsLayer =
+        L.tileLayer(
+            "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+            {
+                maxZoom: 19,
+                opacity: 0.85,
+                attribution:
+                    "Labels &copy; Esri"
+            }
+        );
+
+
+    satelliteLayer.addTo(map);
+
+    labelsLayer.addTo(map);
+
+
+    /*
+       ZOOM BUTTONS AT BOTTOM RIGHT
+    */
+
+    L.control.zoom(
         {
-            maxZoom: 19,
-            attribution:
-                '&copy; OpenStreetMap contributors'
+            position: "bottomright"
         }
     ).addTo(map);
 
 
     earthquakeLayer =
         L.layerGroup().addTo(map);
+
+
+    temperatureLayer =
+        L.layerGroup();
 
 
     loadEarthquakes();
@@ -336,18 +381,38 @@ async function useCurrentLocation() {
             "locationMessage"
         );
 
+
+    const buttons = [
+        document.getElementById("currentLocationBtn"),
+        document.getElementById("myLocationBtn"),
+        document.getElementById("mapMyLocation")
+    ];
+
+
+    buttons.forEach(button => {
+
+        if (button) {
+
+            button.disabled = true;
+
+        }
+
+    });
+
+
     if (message) {
 
         message.textContent =
-            "📍 Detecting your location...";
+            "📍 Detecting your exact location...";
 
     }
 
 
     /*
-       IMPORTANT:
-       Browser GPS requires HTTPS on phones.
-       GitHub Pages provides HTTPS.
+       GPS WORKS BEST ON HTTPS.
+
+       GitHub Pages = HTTPS.
+       localhost = allowed.
     */
 
     if (
@@ -359,78 +424,169 @@ async function useCurrentLocation() {
         if (message) {
 
             message.textContent =
-                "⚠️ Location requires HTTPS. Trying automatic location...";
+                "⚠️ GPS requires HTTPS. Trying automatic location...";
 
         }
 
         await fallbackIPLocation();
 
+        buttons.forEach(button => {
+
+            if (button) button.disabled = false;
+
+        });
+
         return;
+
     }
 
 
     if (!navigator.geolocation) {
 
+        if (message) {
+
+            message.textContent =
+                "⚠️ This device does not support GPS location.";
+
+        }
+
         await fallbackIPLocation();
+
+        buttons.forEach(button => {
+
+            if (button) button.disabled = false;
+
+        });
 
         return;
 
     }
 
 
+    /*
+       Clear old watcher
+    */
+
+    if (locationWatchId !== null) {
+
+        try {
+
+            navigator.geolocation.clearWatch(
+                locationWatchId
+            );
+
+        } catch (error) {
+
+            console.warn(error);
+
+        }
+
+        locationWatchId = null;
+
+    }
+
+
+    /*
+       First request with high accuracy.
+    */
+
     navigator.geolocation.getCurrentPosition(
 
         async position => {
 
-            const latitude =
-                position.coords.latitude;
+            try {
 
-            const longitude =
-                position.coords.longitude;
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
 
 
-            const location =
-                await reverseGeocode(
+                if (
+                    !Number.isFinite(latitude) ||
+                    !Number.isFinite(longitude)
+                ) {
+
+                    throw new Error(
+                        "Invalid GPS coordinates"
+                    );
+
+                }
+
+
+                const location =
+                    await reverseGeocode(
+                        latitude,
+                        longitude
+                    );
+
+
+                const finalLocation = {
+
+                    name:
+                        location?.name ||
+                        "Current Location",
+
                     latitude,
-                    longitude
+
+                    longitude,
+
+                    country:
+                        location?.country || "",
+
+                    state:
+                        location?.state || "",
+
+                    district:
+                        location?.district || "",
+
+                    postcode:
+                        location?.postcode || "",
+
+                    timezone:
+                        location?.timezone ||
+                        "auto",
+
+                    isCurrent: true
+
+                };
+
+
+                if (message) {
+
+                    message.textContent =
+                        "📍 Exact location detected.";
+
+                }
+
+
+                await loadLocationData(
+                    finalLocation
                 );
 
 
-            const finalLocation = {
+            } catch (error) {
 
-                name:
-                    location?.name ||
-                    "Current Location",
-
-                latitude,
-                longitude,
-
-                country:
-                    location?.country || "",
-
-                state:
-                    location?.state || "",
-
-                district:
-                    location?.district || "",
-
-                postcode:
-                    location?.postcode || "",
-
-                timezone:
-                    location?.timezone ||
-                    "auto",
-
-                isCurrent: true
-
-            };
+                console.error(
+                    "GPS processing error:",
+                    error
+                );
 
 
-            await loadLocationData(
-                finalLocation
-            );
+                await fallbackIPLocation();
+
+            }
+
+
+            buttons.forEach(button => {
+
+                if (button) button.disabled = false;
+
+            });
 
         },
+
 
         async error => {
 
@@ -441,7 +597,8 @@ async function useCurrentLocation() {
 
 
             let reason =
-                "Location permission was not available.";
+                "Location could not be detected.";
+
 
             if (error.code === 1) {
 
@@ -450,17 +607,19 @@ async function useCurrentLocation() {
 
             }
 
+
             if (error.code === 2) {
 
                 reason =
-                    "Location could not be determined.";
+                    "GPS signal is unavailable.";
 
             }
+
 
             if (error.code === 3) {
 
                 reason =
-                    "Location request timed out.";
+                    "GPS request timed out.";
 
             }
 
@@ -475,20 +634,24 @@ async function useCurrentLocation() {
             }
 
 
-            /*
-               IP fallback
-            */
-
             await fallbackIPLocation();
 
+
+            buttons.forEach(button => {
+
+                if (button) button.disabled = false;
+
+            });
+
         },
+
 
         {
             enableHighAccuracy: true,
 
-            timeout: 15000,
+            timeout: 20000,
 
-            maximumAge: 300000
+            maximumAge: 60000
 
         }
 
@@ -508,11 +671,15 @@ async function fallbackIPLocation() {
             "locationMessage"
         );
 
+
     try {
 
         const response =
             await fetch(
-                "https://ipapi.co/json/"
+                "https://ipapi.co/json/",
+                {
+                    cache: "no-store"
+                }
             );
 
 
@@ -530,12 +697,31 @@ async function fallbackIPLocation() {
 
 
         if (
-            !data.latitude ||
-            !data.longitude
+            data.latitude === undefined ||
+            data.longitude === undefined
         ) {
 
             throw new Error(
                 "No coordinates"
+            );
+
+        }
+
+
+        const latitude =
+            Number(data.latitude);
+
+        const longitude =
+            Number(data.longitude);
+
+
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude)
+        ) {
+
+            throw new Error(
+                "Invalid IP coordinates"
             );
 
         }
@@ -549,11 +735,9 @@ async function fallbackIPLocation() {
                 data.country_name ||
                 "Current Location",
 
-            latitude:
-                Number(data.latitude),
+            latitude,
 
-            longitude:
-                Number(data.longitude),
+            longitude,
 
             country:
                 data.country_name || "",
@@ -710,11 +894,7 @@ async function searchLocation(query) {
 
     query = query.trim();
 
-    if (!query) {
-
-        return;
-
-    }
+    if (!query) return;
 
 
     const resultsContainers = [
@@ -747,17 +927,6 @@ async function searchLocation(query) {
 
 
     try {
-
-        /*
-           First search with Nominatim.
-           This is much better for:
-           village
-           town
-           city
-           district
-           country
-           postcode
-        */
 
         const nominatimURL =
             `${NOMINATIM_API}` +
@@ -846,10 +1015,6 @@ async function searchLocation(query) {
 
         }
 
-
-        /*
-           Fallback Open-Meteo search
-        */
 
         const fallbackURL =
             `${GEOCODING_API}` +
@@ -980,7 +1145,7 @@ function renderSearchResults(
 
 
             locations.forEach(
-                (location, index) => {
+                location => {
 
                     const item =
                         document.createElement(
@@ -1025,11 +1190,15 @@ function renderSearchResults(
                                 location
                             );
 
+
                             containers.forEach(
                                 c => {
 
                                     if (c) {
-                                        c.innerHTML = "";
+
+                                        c.innerHTML =
+                                            "";
+
                                     }
 
                                 }
@@ -1048,6 +1217,43 @@ function renderSearchResults(
 
         }
     );
+
+}
+
+
+/* =====================================================
+   SEARCH ERROR
+===================================================== */
+
+function renderSearchError(
+    message
+) {
+
+    const containers = [
+
+        document.getElementById(
+            "searchResults"
+        ),
+
+        document.getElementById(
+            "dashboardSearchResults"
+        )
+
+    ];
+
+
+    containers.forEach(container => {
+
+        if (container) {
+
+            container.innerHTML =
+                `<div class="loading-message">
+                    ${escapeHTML(message)}
+                </div>`;
+
+        }
+
+    });
 
 }
 
@@ -1173,7 +1379,7 @@ function updateLocationHeader(
         details.textContent =
             parts.length
                 ? parts.join(" • ")
-                : `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`;
+                : `${Number(location.latitude).toFixed(4)}, ${Number(location.longitude).toFixed(4)}`;
 
     }
 
@@ -1261,29 +1467,17 @@ async function loadWeather(
         data;
 
 
-    updateCurrentWeather(
-        data
-    );
+    updateCurrentWeather(data);
 
-    updateHourly(
-        data
-    );
+    updateHourly(data);
 
-    updateDaily(
-        data
-    );
+    updateDaily(data);
 
-    updateSun(
-        data
-    );
+    updateSun(data);
 
-    updateCharts(
-        data
-    );
+    updateCharts(data);
 
-    updateLocalTime(
-        data
-    );
+    updateLocalTime(data);
 
 }
 
@@ -1463,7 +1657,9 @@ function updateHourly(
 
 
     if (startIndex < 0) {
+
         startIndex = 0;
+
     }
 
 
@@ -1580,14 +1776,16 @@ function updateDaily(
         card.innerHTML = `
 
             <div class="day">
-                ${i === 0
-                    ? "Today"
-                    : date.toLocaleDateString(
-                        [],
-                        {
-                            weekday: "short"
-                        }
-                    )}
+                ${
+                    i === 0
+                        ? "Today"
+                        : date.toLocaleDateString(
+                            [],
+                            {
+                                weekday: "short"
+                            }
+                        )
+                }
             </div>
 
             <div class="daily-icon">
@@ -1629,7 +1827,9 @@ function updateSun(
         !data.daily ||
         !data.daily.sunrise
     ) {
+
         return;
+
     }
 
 
@@ -1659,9 +1859,7 @@ function updateLocalTime(
     data
 ) {
 
-    if (!data.timezone) {
-        return;
-    }
+    if (!data.timezone) return;
 
 
     const update = () => {
@@ -1687,9 +1885,7 @@ function updateLocalTime(
 
 
         const text =
-            formatter.format(
-                now
-            );
+            formatter.format(now);
 
 
         setText(
@@ -1856,7 +2052,10 @@ async function loadEarthquakes() {
 
         const response =
             await fetch(
-                EARTHQUAKE_API
+                EARTHQUAKE_API,
+                {
+                    cache: "no-store"
+                }
             );
 
 
@@ -1873,6 +2072,9 @@ async function loadEarthquakes() {
             await response.json();
 
 
+        if (!earthquakeLayer) return;
+
+
         earthquakeLayer.clearLayers();
 
 
@@ -1880,31 +2082,26 @@ async function loadEarthquakes() {
             data.features || [];
 
 
-        features
-            .sort(
-                (a, b) =>
-                    (
-                        b.properties.mag || 0
-                    ) -
-                    (
-                        a.properties.mag || 0
-                    )
-            );
+        features.sort(
+            (a, b) =>
+                (
+                    b.properties.mag || 0
+                ) -
+                (
+                    a.properties.mag || 0
+                )
+        );
 
 
         const topEarthquakes =
-            features.slice(
-                0,
-                20
-            );
+            features.slice(0, 20);
 
 
         topEarthquakes.forEach(
             quake => {
 
                 const coords =
-                    quake.geometry
-                        .coordinates;
+                    quake.geometry.coordinates;
 
 
                 const longitude =
@@ -2138,14 +2335,10 @@ function showMapLocation(
 
 
     const lat =
-        Number(
-            location.latitude
-        );
+        Number(location.latitude);
 
     const lon =
-        Number(
-            location.longitude
-        );
+        Number(location.longitude);
 
 
     if (
@@ -2242,20 +2435,41 @@ function changeMapLayer(
     if (!map) return;
 
 
+    /*
+       MAP
+    */
+
     if (layer === "standard") {
 
         if (
-            earthquakeLayer &&
-            !map.hasLayer(
-                earthquakeLayer
-            )
+            satelliteLayer &&
+            !map.hasLayer(satelliteLayer)
         ) {
 
-            earthquakeLayer.addTo(
-                map
-            );
+            satelliteLayer.addTo(map);
 
         }
+
+
+        if (
+            labelsLayer &&
+            !map.hasLayer(labelsLayer)
+        ) {
+
+            labelsLayer.addTo(map);
+
+        }
+
+
+        if (
+            earthquakeLayer &&
+            !map.hasLayer(earthquakeLayer)
+        ) {
+
+            earthquakeLayer.addTo(map);
+
+        }
+
 
         if (temperatureLayer) {
 
@@ -2265,28 +2479,49 @@ function changeMapLayer(
 
         }
 
+
         setText(
             "mapInfoText",
-            "Standard world map with earthquake monitoring."
+            "🌍 Earth view with global earthquake monitoring."
         );
 
         return;
 
     }
 
+
+    /*
+       EARTHQUAKES
+    */
 
     if (layer === "earthquakes") {
 
         if (
-            earthquakeLayer &&
-            !map.hasLayer(
-                earthquakeLayer
-            )
+            satelliteLayer &&
+            !map.hasLayer(satelliteLayer)
         ) {
 
-            earthquakeLayer.addTo(
-                map
-            );
+            satelliteLayer.addTo(map);
+
+        }
+
+
+        if (
+            labelsLayer &&
+            !map.hasLayer(labelsLayer)
+        ) {
+
+            labelsLayer.addTo(map);
+
+        }
+
+
+        if (
+            earthquakeLayer &&
+            !map.hasLayer(earthquakeLayer)
+        ) {
+
+            earthquakeLayer.addTo(map);
 
         }
 
@@ -2302,7 +2537,7 @@ function changeMapLayer(
 
         setText(
             "mapInfoText",
-            "Recent earthquakes are shown with markers. Click a marker for details."
+            "🌎 Recent earthquakes are shown with markers. Click a marker for details."
         );
 
         return;
@@ -2310,22 +2545,26 @@ function changeMapLayer(
     }
 
 
+    /*
+       TEMPERATURE
+    */
+
     if (layer === "temperature") {
 
-        /*
-           Visual temperature overlay.
-           It does not claim to be a precise weather radar.
-        */
+        if (temperatureLayer) {
+
+            temperatureLayer.addTo(map);
+
+        }
+
 
         if (
-            temperatureLayer &&
-            !map.hasLayer(
-                temperatureLayer
-            )
+            earthquakeLayer &&
+            map.hasLayer(earthquakeLayer)
         ) {
 
-            temperatureLayer.addTo(
-                map
+            map.removeLayer(
+                earthquakeLayer
             );
 
         }
@@ -2333,7 +2572,7 @@ function changeMapLayer(
 
         setText(
             "mapInfoText",
-            "Temperature monitoring layer selected."
+            "🌡️ Temperature monitoring layer selected."
         );
 
     }
@@ -2557,16 +2796,10 @@ function addFavorite() {
     const exists =
         favorites.some(
             item =>
-                Number(
-                    item.latitude
-                ) === Number(
-                    selectedLocation.latitude
-                ) &&
-                Number(
-                    item.longitude
-                ) === Number(
-                    selectedLocation.longitude
-                )
+                Number(item.latitude) ===
+                Number(selectedLocation.latitude) &&
+                Number(item.longitude) ===
+                Number(selectedLocation.longitude)
         );
 
 
@@ -2633,7 +2866,7 @@ function renderFavorites() {
 
 
     favorites.forEach(
-        (location, index) => {
+        location => {
 
             const item =
                 document.createElement(
@@ -2841,68 +3074,47 @@ function weatherDescription(
 
     const map = {
 
-        0:
-            "Clear Sky",
+        0: "Clear Sky",
 
-        1:
-            "Mainly Clear",
+        1: "Mainly Clear",
 
-        2:
-            "Partly Cloudy",
+        2: "Partly Cloudy",
 
-        3:
-            "Overcast",
+        3: "Overcast",
 
-        45:
-            "Fog",
+        45: "Fog",
 
-        48:
-            "Depositing Rime Fog",
+        48: "Depositing Rime Fog",
 
-        51:
-            "Light Drizzle",
+        51: "Light Drizzle",
 
-        53:
-            "Moderate Drizzle",
+        53: "Moderate Drizzle",
 
-        55:
-            "Dense Drizzle",
+        55: "Dense Drizzle",
 
-        61:
-            "Light Rain",
+        61: "Light Rain",
 
-        63:
-            "Moderate Rain",
+        63: "Moderate Rain",
 
-        65:
-            "Heavy Rain",
+        65: "Heavy Rain",
 
-        71:
-            "Light Snow",
+        71: "Light Snow",
 
-        73:
-            "Moderate Snow",
+        73: "Moderate Snow",
 
-        75:
-            "Heavy Snow",
+        75: "Heavy Snow",
 
-        80:
-            "Rain Showers",
+        80: "Rain Showers",
 
-        81:
-            "Moderate Rain Showers",
+        81: "Moderate Rain Showers",
 
-        82:
-            "Heavy Rain Showers",
+        82: "Heavy Rain Showers",
 
-        95:
-            "Thunderstorm",
+        95: "Thunderstorm",
 
-        96:
-            "Thunderstorm with Hail",
+        96: "Thunderstorm with Hail",
 
-        99:
-            "Severe Thunderstorm"
+        99: "Severe Thunderstorm"
 
     };
 
@@ -3153,14 +3365,6 @@ async function loadStormAlerts() {
 
     if (!element) return;
 
-
-    /*
-       Global severe-weather APIs vary by country.
-       We therefore avoid showing fake alerts.
-
-       The dashboard clearly tells the user
-       when a global alert feed is unavailable.
-    */
 
     element.innerHTML = `
 
