@@ -12,15 +12,16 @@
 
     <!-- Leaflet Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    
+
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
 
     <style>
         /* =====================================================
            EARTHPULSE - COMPLETE STYLES
         ===================================================== */
-        
+
         * {
             box-sizing: border-box;
         }
@@ -1309,7 +1310,8 @@
 
             <h1 class="brand-title">Earth<span>Pulse</span></h1>
             <p class="tagline">Know Your World. Feel Its Pulse.</p>
-            <p class="landing-description">Global weather, earthquakes, storms, air quality and environmental information in one place.</p>
+            <p class="landing-description">Global weather, earthquakes, storms, air quality and environmental information
+                in one place.</p>
 
             <button id="currentLocationBtn" class="location-btn" type="button">
                 📍 Use Current Location
@@ -1320,7 +1322,8 @@
             </div>
 
             <div class="search-box">
-                <input type="text" id="locationSearch" placeholder="Search city, town, country or postcode..." autocomplete="off">
+                <input type="text" id="locationSearch" placeholder="Search city, town, country or postcode..."
+                autocomplete="off">
                 <button id="searchBtn" type="button">🔍</button>
             </div>
 
@@ -1351,7 +1354,8 @@
         <!-- SEARCH -->
         <section class="dashboard-search">
             <div class="search-box dashboard-search-box">
-                <input type="text" id="dashboardSearch" placeholder="Search city, town, country or postcode..." autocomplete="off">
+                <input type="text" id="dashboardSearch" placeholder="Search city, town, country or postcode..."
+                autocomplete="off">
                 <button id="dashboardSearchBtn" type="button">🔍</button>
             </div>
             <div id="dashboardSearchResults" class="search-results"></div>
@@ -1654,7 +1658,8 @@
     </main>
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
 
     <script>
         /* =====================================================
@@ -1685,7 +1690,8 @@
         const GEO_URL = "https://geocoding-api.open-meteo.com/v1/search";
         const WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
         const AIR_URL = "https://air-quality-api.open-meteo.com/v1/air-quality";
-        const EARTHQUAKE_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+        const EARTHQUAKE_URL =
+        "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
         const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 
         // =====================================================
@@ -1819,7 +1825,8 @@
 
         async function searchNominatim(query) {
             try {
-                const url = NOMINATIM_URL + "/search?format=jsonv2&addressdetails=1&limit=10&q=" + encodeURIComponent(query);
+                const url = NOMINATIM_URL + "/search?format=jsonv2&addressdetails=1&limit=10&q=" + encodeURIComponent(
+                query);
                 const response = await fetch(url, { headers: { "Accept": "application/json" } });
                 if (!response.ok) return [];
                 return await response.json();
@@ -1845,7 +1852,8 @@
                 results = nominatim.map(item => {
                     const address = item.address || {};
                     return {
-                        name: address.village || address.town || address.city || address.municipality || address.county ||
+                        name: address.village || address.town || address.city || address.municipality || address
+                            .county ||
                             item.display_name.split(",")[0],
                         latitude: parseFloat(item.lat),
                         longitude: parseFloat(item.lon),
@@ -1868,11 +1876,11 @@
                 const title = item.name || "Unknown Location";
                 const parts = [item.admin2, item.admin1, item.country, item.postcode].filter(Boolean);
                 return `
-                    <div class="search-result" data-index="${index}">
-                        <strong>📍 ${escapeHTML(title)}</strong>
-                        <small>${escapeHTML(parts.join(", "))}</small>
-                    </div>
-                `;
+                        <div class="search-result" data-index="${index}">
+                            <strong>📍 ${escapeHTML(title)}</strong>
+                            <small>${escapeHTML(parts.join(", "))}</small>
+                        </div>
+                    `;
             }).join("");
 
             const resultElements = resultContainer.querySelectorAll(".search-result");
@@ -2009,7 +2017,8 @@
             $("wind").textContent = Math.round(current.wind_speed_10m) + " km/h";
             $("clouds").textContent = Math.round(current.cloud_cover) + "%";
             $("windDirection").textContent = windDirection(current.wind_direction_10m);
-            $("visibility").textContent = current.visibility !== undefined ? (current.visibility / 1000).toFixed(1) + " km" :
+            $("visibility").textContent = current.visibility !== undefined ? (current.visibility / 1000).toFixed(1) +
+            " km" :
                 "-- km";
             $("pressure").textContent = Math.round(current.pressure_msl) + " hPa";
             $("uvIndex").textContent = current.uv_index !== undefined ? current.uv_index.toFixed(1) : "--";
@@ -2042,14 +2051,14 @@
             for (let i = 0; i < Math.min(24, hourly.time.length); i++) {
                 const info = weatherInfo(hourly.weather_code[i]);
                 html += `
-                    <div class="hour-card">
-                        <div class="hour">${i === 0 ? "Now" : formatTime(hourly.time[i], selectedTimezone)}</div>
-                        <div class="icon">${info.icon}</div>
-                        <strong>${Math.round(hourly.temperature_2m[i])}°C</strong>
-                        <small>🌧️ ${hourly.precipitation_probability[i] || 0}%</small>
-                        <small>💨 ${Math.round(hourly.wind_speed_10m[i])} km/h</small>
-                    </div>
-                `;
+                        <div class="hour-card">
+                            <div class="hour">${i === 0 ? "Now" : formatTime(hourly.time[i], selectedTimezone)}</div>
+                            <div class="icon">${info.icon}</div>
+                            <strong>${Math.round(hourly.temperature_2m[i])}°C</strong>
+                            <small>🌧️ ${hourly.precipitation_probability[i] || 0}%</small>
+                            <small>💨 ${Math.round(hourly.wind_speed_10m[i])} km/h</small>
+                        </div>
+                    `;
             }
             $("hourlyForecast").innerHTML = html;
         }
@@ -2066,14 +2075,14 @@
             for (let i = 0; i < daily.time.length; i++) {
                 const info = weatherInfo(daily.weather_code[i]);
                 html += `
-                    <div class="day-card">
-                        <strong>${i === 0 ? "Today" : formatDay(daily.time[i])}</strong>
-                        <div class="day-icon">${info.icon}</div>
-                        <div class="temps">${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</div>
-                        <small>🌧️ ${daily.precipitation_probability_max[i] || 0}%</small>
-                        <small>☀️ ${daily.uv_index_max[i] !== null ? daily.uv_index_max[i].toFixed(1) : "--"}</small>
-                    </div>
-                `;
+                        <div class="day-card">
+                            <strong>${i === 0 ? "Today" : formatDay(daily.time[i])}</strong>
+                            <div class="day-icon">${info.icon}</div>
+                            <div class="temps">${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</div>
+                            <small>🌧️ ${daily.precipitation_probability_max[i] || 0}%</small>
+                            <small>☀️ ${daily.uv_index_max[i] !== null ? daily.uv_index_max[i].toFixed(1) : "--"}</small>
+                        </div>
+                    `;
             }
             $("dailyForecast").innerHTML = html;
         }
@@ -2289,7 +2298,8 @@
                     const depth = coordinates[2];
                     const magnitude = feature.properties.mag;
                     const place = feature.properties.place || "Unknown location";
-                    const time = feature.properties.time ? new Date(feature.properties.time).toLocaleString("en-IN") :
+                    const time = feature.properties.time ? new Date(feature.properties.time).toLocaleString(
+                    "en-IN") :
                         "--";
 
                     const radius = Math.max(5, Math.min(18, (magnitude || 1) * 3));
@@ -2303,12 +2313,12 @@
                     });
 
                     circle.bindPopup(`
-                        <strong>🌎 Earthquake</strong><br>
-                        <b>Magnitude:</b> ${magnitude !== null ? magnitude.toFixed(1) : "--"}<br>
-                        <b>Location:</b> ${escapeHTML(place)}<br>
-                        <b>Depth:</b> ${depth !== undefined ? depth.toFixed(1) : "--"} km<br>
-                        <b>Time:</b> ${escapeHTML(time)}
-                    `);
+                            <strong>🌎 Earthquake</strong><br>
+                            <b>Magnitude:</b> ${magnitude !== null ? magnitude.toFixed(1) : "--"}<br>
+                            <b>Location:</b> ${escapeHTML(place)}<br>
+                            <b>Depth:</b> ${depth !== undefined ? depth.toFixed(1) : "--"} km<br>
+                            <b>Time:</b> ${escapeHTML(time)}
+                        `);
 
                     earthquakeLayer.addLayer(circle);
                 });
@@ -2318,7 +2328,8 @@
 
             } catch (error) {
                 console.error(error);
-                $("earthquakeList").innerHTML = `<div class="error-message">Earthquake information is temporarily unavailable.</div>`;
+                $("earthquakeList").innerHTML =
+                    `<div class="error-message">Earthquake information is temporarily unavailable.</div>`;
             }
         }
 
@@ -2328,7 +2339,8 @@
 
         function renderEarthquakeList(features) {
             if (!features.length) {
-                $("earthquakeList").innerHTML = `<div class="alert-box safe">No recent earthquake data available.</div>`;
+                $("earthquakeList").innerHTML =
+                `<div class="alert-box safe">No recent earthquake data available.</div>`;
                 return;
             }
 
@@ -2339,14 +2351,14 @@
                 const time = p.time ? new Date(p.time).toLocaleString("en-IN") : "--";
 
                 return `
-                    <div class="earthquake-item">
-                        <div class="earthquake-mag">M ${magnitude}</div>
-                        <div class="earthquake-info">
-                            <strong>${escapeHTML(place)}</strong>
-                            <small>🕐 ${escapeHTML(time)}</small>
+                        <div class="earthquake-item">
+                            <div class="earthquake-mag">M ${magnitude}</div>
+                            <div class="earthquake-info">
+                                <strong>${escapeHTML(place)}</strong>
+                                <small>🕐 ${escapeHTML(time)}</small>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
             }).join("");
         }
 
@@ -2367,28 +2379,28 @@
             if (code === 95 || code === 96 || code === 99) {
                 box.className = "alert-box warning";
                 box.innerHTML = `
-                    ⚠️ <strong>Thunderstorm Conditions</strong><br>
-                    Current weather data indicates thunderstorm activity at the selected location.
-                    Please check your local official weather authority for active warnings.
-                `;
+                        ⚠️ <strong>Thunderstorm Conditions</strong><br>
+                        Current weather data indicates thunderstorm activity at the selected location.
+                        Please check your local official weather authority for active warnings.
+                    `;
                 return;
             }
 
             if (code === 65 || code === 82) {
                 box.className = "alert-box warning";
                 box.innerHTML = `
-                    🌧️ <strong>Heavy Rain Conditions</strong><br>
-                    Heavy precipitation is currently indicated.
-                    Check your local official weather service for warnings and safety information.
-                `;
+                        🌧️ <strong>Heavy Rain Conditions</strong><br>
+                        Heavy precipitation is currently indicated.
+                        Check your local official weather service for warnings and safety information.
+                    `;
                 return;
             }
 
             box.className = "alert-box safe";
             box.innerHTML = `
-                ✅ <strong>No severe condition detected by current weather data.</strong><br>
-                For official emergency warnings, always follow your local weather and disaster-management authority.
-            `;
+                    ✅ <strong>No severe condition detected by current weather data.</strong><br>
+                    For official emergency warnings, always follow your local weather and disaster-management authority.
+                `;
         }
 
         // =====================================================
@@ -2473,10 +2485,10 @@
 
             locationMarker = L.marker([lat, lon]).addTo(map);
             locationMarker.bindPopup(`
-                <strong>📍 ${escapeHTML(currentLocation.name)}</strong><br>
-                ${escapeHTML([currentLocation.admin2, currentLocation.admin1, currentLocation.country].filter(Boolean).join(", "))}<br>
-                <small>${lat.toFixed(5)}, ${lon.toFixed(5)}</small>
-            `).openPopup();
+                    <strong>📍 ${escapeHTML(currentLocation.name)}</strong><br>
+                    ${escapeHTML([currentLocation.admin2, currentLocation.admin1, currentLocation.country].filter(Boolean).join(", "))}<br>
+                    <small>${lat.toFixed(5)}, ${lon.toFixed(5)}</small>
+                `).openPopup();
 
             setTimeout(() => map.invalidateSize(), 300);
         }
@@ -2580,12 +2592,14 @@
                     alert(
                         "📍 Location permission was denied.\n\nPlease allow location access in your browser settings.\n\nChrome: Settings → Privacy → Location\nSafari: Settings → Privacy → Location\nFirefox: Settings → Privacy & Security → Location");
                 } else if (error.code === 2) {
-                    alert("📍 Location unavailable.\n\nPlease check your GPS or network connection and try again.");
+                    alert(
+                        "📍 Location unavailable.\n\nPlease check your GPS or network connection and try again.");
                 } else if (error.code === 3) {
                     alert("📍 Location request timed out.\n\nPlease try again or search your location manually.");
                 } else {
                     alert(
-                        "📍 Could not detect your location.\n\nPlease search your location manually using the search box.");
+                        "📍 Could not detect your location.\n\nPlease search your location manually using the search box."
+                        );
                 }
 
             } finally {
@@ -2672,10 +2686,10 @@
 
             $("recentSearches").innerHTML = list.map((item, index) => {
                 return `
-                    <div class="recent-item" data-index="${index}">
-                        🕘 ${escapeHTML(item.name)}
-                    </div>
-                `;
+                        <div class="recent-item" data-index="${index}">
+                            🕘 ${escapeHTML(item.name)}
+                        </div>
+                    `;
             }).join("");
 
             $("recentSearches").querySelectorAll(".recent-item").forEach(element => {
@@ -2743,13 +2757,13 @@
 
             $("favoritesList").innerHTML = list.map((item, index) => {
                 return `
-                    <div class="favorite-item">
-                        <span class="favorite-open" data-index="${index}">
-                            ⭐ ${escapeHTML(item.name)}
-                        </span>
-                        <button class="delete-favorite" data-index="${index}" title="Remove favorite">✕</button>
-                    </div>
-                `;
+                        <div class="favorite-item">
+                            <span class="favorite-open" data-index="${index}">
+                                ⭐ ${escapeHTML(item.name)}
+                            </span>
+                            <button class="delete-favorite" data-index="${index}" title="Remove favorite">✕</button>
+                        </div>
+                    `;
             }).join("");
 
             $("favoritesList").querySelectorAll(".favorite-open").forEach(element => {
