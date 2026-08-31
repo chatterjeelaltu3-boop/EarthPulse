@@ -1,7 +1,7 @@
 /* =========================================================
    EARTHPULSE
    GLOBAL WEATHER & EARTH MONITOR
-   UPDATED LOCATION SEARCH
+   FULL UPDATED SCRIPT
 ========================================================= */
 
 
@@ -9,8 +9,11 @@
    ELEMENTS
 ========================================================= */
 
-const landingPage = document.getElementById("landingPage");
-const dashboard = document.getElementById("dashboard");
+const landingPage =
+    document.getElementById("landingPage");
+
+const dashboard =
+    document.getElementById("dashboard");
 
 const currentLocationBtn =
     document.getElementById("currentLocationBtn");
@@ -44,22 +47,25 @@ const locationMessage =
 
 
 /* =========================================================
-   VARIABLES
+   GLOBAL VARIABLES
 ========================================================= */
 
 let currentLatitude = null;
+
 let currentLongitude = null;
 
-let currentLocationName = "Current Location";
+let currentLocationName =
+    "Current Location";
 
 let currentLocationData = null;
 
 let temperatureChart = null;
+
 let rainChart = null;
 
 
 /* =========================================================
-   API
+   API URLS
 ========================================================= */
 
 const GEOCODING_API =
@@ -82,17 +88,25 @@ const NOMINATIM_REVERSE_API =
 
 
 /* =========================================================
-   PAGE
+   PAGE CONTROL
 ========================================================= */
 
 function showLandingPage() {
 
     if (landingPage) {
-        landingPage.classList.remove("hidden");
+
+        landingPage.classList.remove(
+            "hidden"
+        );
+
     }
 
     if (dashboard) {
-        dashboard.classList.add("hidden");
+
+        dashboard.classList.add(
+            "hidden"
+        );
+
     }
 
 }
@@ -101,11 +115,19 @@ function showLandingPage() {
 function showDashboard() {
 
     if (landingPage) {
-        landingPage.classList.add("hidden");
+
+        landingPage.classList.add(
+            "hidden"
+        );
+
     }
 
     if (dashboard) {
-        dashboard.classList.remove("hidden");
+
+        dashboard.classList.remove(
+            "hidden"
+        );
+
     }
 
     window.scrollTo({
@@ -125,7 +147,7 @@ function useCurrentLocation() {
     if (!navigator.geolocation) {
 
         showLocationMessage(
-            "❌ Your browser does not support location."
+            "❌ This browser does not support location detection."
         );
 
         return;
@@ -133,13 +155,30 @@ function useCurrentLocation() {
 
 
     showLocationMessage(
-        "📍 Detecting your current location..."
+        "📍 Detecting your precise location..."
     );
 
 
     navigator.geolocation.getCurrentPosition(
 
         async function(position) {
+
+            console.log(
+                "GPS Latitude:",
+                position.coords.latitude
+            );
+
+            console.log(
+                "GPS Longitude:",
+                position.coords.longitude
+            );
+
+            console.log(
+                "GPS Accuracy:",
+                position.coords.accuracy,
+                "meters"
+            );
+
 
             const latitude =
                 position.coords.latitude;
@@ -148,11 +187,19 @@ function useCurrentLocation() {
                 position.coords.longitude;
 
 
-            currentLatitude = latitude;
-            currentLongitude = longitude;
+            currentLatitude =
+                latitude;
+
+            currentLongitude =
+                longitude;
 
 
             try {
+
+                showLocationMessage(
+                    "📍 Location found. Getting place details..."
+                );
+
 
                 const location =
                     await reverseGeocode(
@@ -164,8 +211,86 @@ function useCurrentLocation() {
                 currentLocationData =
                     location;
 
+
                 currentLocationName =
                     location.name ||
+                    "Current Location";
+
+
+                console.log(
+                    "Detected location:",
+                    location
+                );
+
+
+                showDashboard();
+
+
+                showLocationMessage("");
+
+
+                await loadAllData(
+                    latitude,
+                    longitude,
+                    location
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Location details error:",
+                    error
+                );
+
+
+                /*
+                 * GPS coordinates পাওয়া গেছে,
+                 * তাই reverse geocoding fail হলেও
+                 * coordinates দিয়েই weather load হবে।
+                 */
+
+                const fallbackLocation = {
+
+                    name:
+                        "Current Location",
+
+                    village:
+                        "",
+
+                    town:
+                        "",
+
+                    city:
+                        "",
+
+                    district:
+                        "",
+
+                    state:
+                        "",
+
+                    country:
+                        "",
+
+                    postcode:
+                        "",
+
+                    latitude:
+                        latitude,
+
+                    longitude:
+                        longitude
+
+                };
+
+
+                currentLocationData =
+                    fallbackLocation;
+
+
+                currentLocationName =
                     "Current Location";
 
 
@@ -175,7 +300,7 @@ function useCurrentLocation() {
                 await loadAllData(
                     latitude,
                     longitude,
-                    location
+                    fallbackLocation
                 );
 
 
@@ -183,43 +308,42 @@ function useCurrentLocation() {
 
             }
 
-            catch (error) {
-
-                console.error(error);
-
-                showLocationMessage(
-                    "❌ Could not load weather data."
-                );
-
-            }
-
         },
 
         function(error) {
 
-            console.error(error);
+            console.error(
+                "GPS ERROR:",
+                error
+            );
 
 
-            if (error.code === 1) {
+            if (
+                error.code === 1
+            ) {
 
                 showLocationMessage(
-                    "❌ Location permission denied. Please allow location access."
+                    "❌ Location permission denied. Please allow location access for EarthPulse."
                 );
 
             }
 
-            else if (error.code === 2) {
+            else if (
+                error.code === 2
+            ) {
 
                 showLocationMessage(
-                    "❌ Your location could not be detected."
+                    "❌ Location unavailable. Turn ON your device Location/GPS and try again."
                 );
 
             }
 
-            else if (error.code === 3) {
+            else if (
+                error.code === 3
+            ) {
 
                 showLocationMessage(
-                    "❌ Location request timed out."
+                    "❌ Location detection timed out. Turn ON GPS and try again."
                 );
 
             }
@@ -227,7 +351,7 @@ function useCurrentLocation() {
             else {
 
                 showLocationMessage(
-                    "❌ Unable to detect your location."
+                    "❌ Could not detect your location. Please try again."
                 );
 
             }
@@ -235,9 +359,16 @@ function useCurrentLocation() {
         },
 
         {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
+
+            enableHighAccuracy:
+                true,
+
+            timeout:
+                30000,
+
+            maximumAge:
+                0
+
         }
 
     );
@@ -261,7 +392,7 @@ async function reverseGeocode(
             `?lat=${encodeURIComponent(latitude)}` +
             `&lon=${encodeURIComponent(longitude)}` +
             `&format=jsonv2` +
-            `&zoom=15` +
+            `&zoom=18` +
             `&addressdetails=1`;
 
 
@@ -270,16 +401,19 @@ async function reverseGeocode(
                 url,
                 {
                     headers: {
-                        "Accept": "application/json"
+                        "Accept":
+                            "application/json"
                     }
                 }
             );
 
 
         if (!response.ok) {
+
             throw new Error(
                 "Reverse geocoding failed"
             );
+
         }
 
 
@@ -297,6 +431,8 @@ async function reverseGeocode(
             address.city ||
             address.municipality ||
             address.suburb ||
+            address.neighbourhood ||
+            address.hamlet ||
             address.county ||
             address.state ||
             "Current Location";
@@ -304,16 +440,20 @@ async function reverseGeocode(
 
         return {
 
-            name: name,
+            name:
+                name,
 
             village:
-                address.village || "",
+                address.village ||
+                "",
 
             town:
-                address.town || "",
+                address.town ||
+                "",
 
             city:
-                address.city || "",
+                address.city ||
+                "",
 
             district:
                 address.county ||
@@ -321,13 +461,16 @@ async function reverseGeocode(
                 "",
 
             state:
-                address.state || "",
+                address.state ||
+                "",
 
             country:
-                address.country || "",
+                address.country ||
+                "",
 
             postcode:
-                address.postcode || "",
+                address.postcode ||
+                "",
 
             latitude:
                 Number(latitude),
@@ -349,21 +492,29 @@ async function reverseGeocode(
 
         return {
 
-            name: "Current Location",
+            name:
+                "Current Location",
 
-            village: "",
+            village:
+                "",
 
-            town: "",
+            town:
+                "",
 
-            city: "",
+            city:
+                "",
 
-            district: "",
+            district:
+                "",
 
-            state: "",
+            state:
+                "",
 
-            country: "",
+            country:
+                "",
 
-            postcode: "",
+            postcode:
+                "",
 
             latitude:
                 Number(latitude),
@@ -379,7 +530,7 @@ async function reverseGeocode(
 
 
 /* =========================================================
-   MAIN SEARCH
+   SEARCH LOCATION
 ========================================================= */
 
 async function searchLocation(
@@ -393,37 +544,38 @@ async function searchLocation(
 
     if (!search) {
 
-        resultContainer.innerHTML = "";
+        resultContainer.innerHTML =
+            "";
 
         return;
+
     }
 
 
     resultContainer.innerHTML = `
+
         <div class="search-result-item">
+
             🔎 Searching globally for
-            <strong>${escapeHTML(search)}</strong>...
+
+            <strong>
+                ${escapeHTML(search)}
+            </strong>
+
+            ...
+
         </div>
+
     `;
 
 
     try {
-
-        /*
-         * FIRST:
-         * Open-Meteo
-         */
 
         const openMeteoResults =
             await searchOpenMeteo(
                 search
             );
 
-
-        /*
-         * SECOND:
-         * Nominatim settlement
-         */
 
         const nominatimSettlementResults =
             await searchNominatim(
@@ -432,11 +584,6 @@ async function searchLocation(
             );
 
 
-        /*
-         * THIRD:
-         * Nominatim general address
-         */
-
         const nominatimAddressResults =
             await searchNominatim(
                 search,
@@ -444,19 +591,20 @@ async function searchLocation(
             );
 
 
-        /*
-         * MERGE ALL RESULTS
-         */
-
         const combined =
             mergeLocationResults([
+
                 ...openMeteoResults,
+
                 ...nominatimSettlementResults,
+
                 ...nominatimAddressResults
+
             ]);
 
 
-        resultContainer.innerHTML = "";
+        resultContainer.innerHTML =
+            "";
 
 
         if (
@@ -464,22 +612,26 @@ async function searchLocation(
         ) {
 
             resultContainer.innerHTML = `
+
                 <div class="search-result-item">
+
                     ❌ No location found.
+
                     <br>
+
                     <small>
-                        Try adding district, state or country.
+                        Try village + district,
+                        city + country or PIN code.
                     </small>
+
                 </div>
+
             `;
 
             return;
+
         }
 
-
-        /*
-         * SHOW RESULTS
-         */
 
         combined
             .slice(0, 12)
@@ -509,6 +661,7 @@ async function searchLocation(
                             resultContainer.innerHTML =
                                 "";
 
+
                             if (
                                 locationSearch
                             ) {
@@ -517,6 +670,7 @@ async function searchLocation(
                                     "";
 
                             }
+
 
                             if (
                                 dashboardSearch
@@ -548,19 +702,25 @@ async function searchLocation(
     catch (error) {
 
         console.error(
-            "Location search error:",
+            "Search error:",
             error
         );
 
 
         resultContainer.innerHTML = `
+
             <div class="search-result-item">
+
                 ❌ Search failed.
+
                 <br>
+
                 <small>
                     Please check your internet connection.
                 </small>
+
             </div>
+
         `;
 
     }
@@ -591,7 +751,9 @@ async function searchOpenMeteo(
 
 
         if (!response.ok) {
+
             return [];
+
         }
 
 
@@ -601,10 +763,13 @@ async function searchOpenMeteo(
 
         if (
             !data.results ||
-            !Array.isArray(data.results)
+            !Array.isArray(
+                data.results
+            )
         ) {
 
             return [];
+
         }
 
 
@@ -613,10 +778,12 @@ async function searchOpenMeteo(
 
                 return {
 
-                    source: "Open-Meteo",
+                    source:
+                        "Open-Meteo",
 
                     name:
-                        place.name || "",
+                        place.name ||
+                        "",
 
                     village:
                         "",
@@ -625,22 +792,29 @@ async function searchOpenMeteo(
                         "",
 
                     city:
-                        place.name || "",
+                        place.name ||
+                        "",
 
                     district:
-                        place.admin2 || "",
+                        place.admin2 ||
+                        "",
 
                     state:
-                        place.admin1 || "",
+                        place.admin1 ||
+                        "",
 
                     country:
-                        place.country || "",
+                        place.country ||
+                        "",
 
                     postcode:
                         Array.isArray(
                             place.postcodes
                         )
-                            ? place.postcodes[0] || ""
+                            ? (
+                                place.postcodes[0] ||
+                                ""
+                            )
                             : "",
 
                     latitude:
@@ -654,7 +828,8 @@ async function searchOpenMeteo(
                         ),
 
                     type:
-                        place.feature_code || ""
+                        place.feature_code ||
+                        ""
 
                 };
 
@@ -694,8 +869,7 @@ async function searchNominatim(
             `&format=jsonv2` +
             `&addressdetails=1` +
             `&limit=20` +
-            `&accept-language=en` +
-            `&layer=address`;
+            `&accept-language=en`;
 
 
         if (featureType) {
@@ -744,42 +918,45 @@ async function searchNominatim(
             function(place) {
 
                 const address =
-                    place.address || {};
+                    place.address ||
+                    {};
 
 
                 const village =
                     address.village ||
                     "";
 
+
                 const town =
                     address.town ||
                     "";
 
+
                 const city =
                     address.city ||
                     "";
+
 
                 const district =
                     address.county ||
                     address.district ||
                     "";
 
+
                 const state =
                     address.state ||
                     "";
+
 
                 const country =
                     address.country ||
                     "";
 
+
                 const postcode =
                     address.postcode ||
                     "";
 
-
-                /*
-                 * Prefer actual settlement name
-                 */
 
                 const name =
                     village ||
@@ -787,6 +964,8 @@ async function searchNominatim(
                     city ||
                     address.municipality ||
                     address.suburb ||
+                    address.neighbourhood ||
+                    address.hamlet ||
                     place.name ||
                     district ||
                     state ||
@@ -834,10 +1013,12 @@ async function searchNominatim(
                         ),
 
                     type:
-                        place.type || "",
+                        place.type ||
+                        "",
 
                     displayName:
-                        place.display_name || ""
+                        place.display_name ||
+                        ""
 
                 };
 
@@ -861,7 +1042,7 @@ async function searchNominatim(
 
 
 /* =========================================================
-   MERGE RESULTS
+   MERGE LOCATION RESULTS
 ========================================================= */
 
 function mergeLocationResults(
@@ -876,12 +1057,32 @@ function mergeLocationResults(
         function(place) {
 
             if (
-                !place ||
+                !place
+            ) {
+
+                return;
+
+            }
+
+
+            if (
                 !Number.isFinite(
-                    Number(place.latitude)
-                ) ||
+                    Number(
+                        place.latitude
+                    )
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            if (
                 !Number.isFinite(
-                    Number(place.longitude)
+                    Number(
+                        place.longitude
+                    )
                 )
             ) {
 
@@ -892,6 +1093,7 @@ function mergeLocationResults(
 
             const key =
                 [
+
                     normalizeText(
                         place.name
                     ),
@@ -930,7 +1132,7 @@ function mergeLocationResults(
 
 
 /* =========================================================
-   SEARCH RESULT UI
+   SEARCH RESULT HTML
 ========================================================= */
 
 function createSearchResultHTML(
@@ -943,8 +1145,7 @@ function createSearchResultHTML(
         );
 
 
-    const details =
-        [];
+    const details = [];
 
 
     if (
@@ -1091,49 +1292,63 @@ function getLocationType(
     place
 ) {
 
-    if (place.village) {
+    if (
+        place.village
+    ) {
 
         return "Village";
 
     }
 
 
-    if (place.town) {
+    if (
+        place.town
+    ) {
 
         return "Town";
 
     }
 
 
-    if (place.city) {
+    if (
+        place.city
+    ) {
 
         return "City";
 
     }
 
 
-    if (place.district) {
+    if (
+        place.district
+    ) {
 
         return "District";
 
     }
 
 
-    if (place.state) {
+    if (
+        place.state
+    ) {
 
         return "State / Province";
 
     }
 
 
-    if (place.postcode) {
+    if (
+        place.postcode
+    ) {
 
         return "Postal Area";
 
     }
 
 
-    if (place.country) {
+    if (
+        place.country
+    ) {
 
         return "Country";
 
@@ -1146,7 +1361,7 @@ function getLocationType(
 
 
 /* =========================================================
-   SELECT LOCATION
+   SELECT SEARCHED LOCATION
 ========================================================= */
 
 async function loadSelectedLocation(
@@ -1154,10 +1369,15 @@ async function loadSelectedLocation(
 ) {
 
     currentLatitude =
-        Number(place.latitude);
+        Number(
+            place.latitude
+        );
+
 
     currentLongitude =
-        Number(place.longitude);
+        Number(
+            place.longitude
+        );
 
 
     currentLocationName =
@@ -1172,38 +1392,45 @@ async function loadSelectedLocation(
             "Selected Location",
 
         village:
-            place.village || "",
+            place.village ||
+            "",
 
         town:
-            place.town || "",
+            place.town ||
+            "",
 
         city:
-            place.city || "",
+            place.city ||
+            "",
 
         district:
-            place.district || "",
+            place.district ||
+            "",
 
         state:
-            place.state || "",
+            place.state ||
+            "",
 
         country:
-            place.country || "",
+            place.country ||
+            "",
 
         postcode:
-            place.postcode || "",
+            place.postcode ||
+            "",
 
         latitude:
-            Number(place.latitude),
+            currentLatitude,
 
         longitude:
-            Number(place.longitude)
+            currentLongitude
 
     };
 
 
     /*
-     * If important address details are missing,
-     * reverse geocode the coordinates.
+     * Missing details থাকলে coordinates
+     * দিয়ে আবার reverse geocode করা হবে।
      */
 
     if (
@@ -1462,7 +1689,15 @@ function updateLocationInformation(
     }
 
 
-    if (location.town) {
+    if (
+        location.town &&
+        normalizeText(
+            location.town
+        ) !==
+        normalizeText(
+            location.name
+        )
+    ) {
 
         parts.push(
             `Town: ${location.town}`
@@ -1488,7 +1723,9 @@ function updateLocationInformation(
     }
 
 
-    if (location.district) {
+    if (
+        location.district
+    ) {
 
         parts.push(
             `District: ${location.district}`
@@ -1497,7 +1734,9 @@ function updateLocationInformation(
     }
 
 
-    if (location.state) {
+    if (
+        location.state
+    ) {
 
         parts.push(
             location.state
@@ -1506,7 +1745,9 @@ function updateLocationInformation(
     }
 
 
-    if (location.country) {
+    if (
+        location.country
+    ) {
 
         parts.push(
             location.country
@@ -1515,7 +1756,9 @@ function updateLocationInformation(
     }
 
 
-    if (location.postcode) {
+    if (
+        location.postcode
+    ) {
 
         parts.push(
             `PIN ${location.postcode}`
@@ -1559,7 +1802,11 @@ function updateCurrentWeather(
         data.current;
 
 
-    if (!current) return;
+    if (!current) {
+
+        return;
+
+    }
 
 
     setText(
@@ -1622,7 +1869,7 @@ function updateCurrentWeather(
         "visibility",
         `${(
             Number(
-                current.visibility
+                current.visibility || 0
             ) / 1000
         ).toFixed(1)} km`
     );
@@ -1669,23 +1916,35 @@ function updateHourlyForecast(
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     const hourly =
         data.hourly;
 
 
-    if (!hourly) return;
+    if (!hourly) {
+
+        return;
+
+    }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    let startIndex = 0;
+    let startIndex =
+        0;
 
 
-    if (data.current?.time) {
+    if (
+        data.current?.time
+    ) {
 
         const index =
             hourly.time.indexOf(
@@ -1693,9 +1952,12 @@ function updateHourlyForecast(
             );
 
 
-        if (index >= 0) {
+        if (
+            index >= 0
+        ) {
 
-            startIndex = index;
+            startIndex =
+                index;
 
         }
 
@@ -1735,8 +1997,10 @@ function updateHourlyForecast(
             date.toLocaleTimeString(
                 "en-IN",
                 {
-                    hour: "numeric",
-                    minute: "2-digit"
+                    hour:
+                        "numeric",
+                    minute:
+                        "2-digit"
                 }
             );
 
@@ -1781,7 +2045,7 @@ function updateHourlyForecast(
 
 
 /* =========================================================
-   DAILY FORECAST
+   7 DAY FORECAST
 ========================================================= */
 
 function updateDailyForecast(
@@ -1794,17 +2058,26 @@ function updateDailyForecast(
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     const daily =
         data.daily;
 
 
-    if (!daily) return;
+    if (!daily) {
+
+        return;
+
+    }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     for (
@@ -1825,7 +2098,8 @@ function updateDailyForecast(
                 : date.toLocaleDateString(
                     "en-IN",
                     {
-                        weekday: "short"
+                        weekday:
+                            "short"
                     }
                 );
 
@@ -1889,7 +2163,7 @@ function updateDailyForecast(
 
 
 /* =========================================================
-   SUN
+   SUN INFORMATION
 ========================================================= */
 
 function updateSunInformation(
@@ -1900,10 +2174,16 @@ function updateSunInformation(
         data.daily;
 
 
-    if (!daily) return;
+    if (!daily) {
+
+        return;
+
+    }
 
 
-    if (daily.sunrise?.[0]) {
+    if (
+        daily.sunrise?.[0]
+    ) {
 
         setText(
             "sunrise",
@@ -1915,7 +2195,9 @@ function updateSunInformation(
     }
 
 
-    if (daily.sunset?.[0]) {
+    if (
+        daily.sunset?.[0]
+    ) {
 
         setText(
             "sunset",
@@ -1927,7 +2209,9 @@ function updateSunInformation(
     }
 
 
-    if (data.current?.time) {
+    if (
+        data.current?.time
+    ) {
 
         setText(
             "dashboardLocalTime",
@@ -1942,7 +2226,7 @@ function updateSunInformation(
 
 
 /* =========================================================
-   UV
+   UV INDEX
 ========================================================= */
 
 function updateUV(
@@ -1965,13 +2249,17 @@ function updateUV(
 
     setText(
         "uvIndex",
-        Number(uv).toFixed(1)
+        Number(
+            uv
+        ).toFixed(1)
     );
 
 
     setText(
         "uvLarge",
-        Number(uv).toFixed(1)
+        Number(
+            uv
+        ).toFixed(1)
     );
 
 
@@ -2009,7 +2297,9 @@ function updateUV(
 
     }
 
-    else if (uv >= 11) {
+    else if (
+        uv >= 11
+    ) {
 
         status =
             "Extreme";
@@ -2039,7 +2329,11 @@ function createTemperatureChart(
         );
 
 
-    if (!canvas) return;
+    if (!canvas) {
+
+        return;
+
+    }
 
 
     if (
@@ -2047,12 +2341,18 @@ function createTemperatureChart(
         "undefined"
     ) {
 
+        console.warn(
+            "Chart.js is not loaded."
+        );
+
         return;
 
     }
 
 
-    if (temperatureChart) {
+    if (
+        temperatureChart
+    ) {
 
         temperatureChart.destroy();
 
@@ -2063,10 +2363,20 @@ function createTemperatureChart(
         data.hourly;
 
 
-    let startIndex = 0;
+    if (!hourly) {
+
+        return;
+
+    }
 
 
-    if (data.current?.time) {
+    let startIndex =
+        0;
+
+
+    if (
+        data.current?.time
+    ) {
 
         const index =
             hourly.time.indexOf(
@@ -2074,9 +2384,12 @@ function createTemperatureChart(
             );
 
 
-        if (index >= 0) {
+        if (
+            index >= 0
+        ) {
 
-            startIndex = index;
+            startIndex =
+                index;
 
         }
 
@@ -2091,6 +2404,7 @@ function createTemperatureChart(
 
 
     const labels = [];
+
     const temperatures = [];
 
 
@@ -2110,7 +2424,8 @@ function createTemperatureChart(
             date.toLocaleTimeString(
                 "en-IN",
                 {
-                    hour: "numeric"
+                    hour:
+                        "numeric"
                 }
             )
         );
@@ -2128,11 +2443,13 @@ function createTemperatureChart(
             canvas.getContext("2d"),
             {
 
-                type: "line",
+                type:
+                    "line",
 
                 data: {
 
-                    labels,
+                    labels:
+                        labels,
 
                     datasets: [
 
@@ -2158,7 +2475,8 @@ function createTemperatureChart(
 
                 options: {
 
-                    responsive: true,
+                    responsive:
+                        true,
 
                     maintainAspectRatio:
                         false
@@ -2185,7 +2503,11 @@ function createRainChart(
         );
 
 
-    if (!canvas) return;
+    if (!canvas) {
+
+        return;
+
+    }
 
 
     if (
@@ -2193,12 +2515,18 @@ function createRainChart(
         "undefined"
     ) {
 
+        console.warn(
+            "Chart.js is not loaded."
+        );
+
         return;
 
     }
 
 
-    if (rainChart) {
+    if (
+        rainChart
+    ) {
 
         rainChart.destroy();
 
@@ -2209,10 +2537,20 @@ function createRainChart(
         data.hourly;
 
 
-    let startIndex = 0;
+    if (!hourly) {
+
+        return;
+
+    }
 
 
-    if (data.current?.time) {
+    let startIndex =
+        0;
+
+
+    if (
+        data.current?.time
+    ) {
 
         const index =
             hourly.time.indexOf(
@@ -2220,9 +2558,12 @@ function createRainChart(
             );
 
 
-        if (index >= 0) {
+        if (
+            index >= 0
+        ) {
 
-            startIndex = index;
+            startIndex =
+                index;
 
         }
 
@@ -2237,6 +2578,7 @@ function createRainChart(
 
 
     const labels = [];
+
     const rain = [];
 
 
@@ -2256,7 +2598,8 @@ function createRainChart(
             date.toLocaleTimeString(
                 "en-IN",
                 {
-                    hour: "numeric"
+                    hour:
+                        "numeric"
                 }
             )
         );
@@ -2276,11 +2619,13 @@ function createRainChart(
             canvas.getContext("2d"),
             {
 
-                type: "bar",
+                type:
+                    "bar",
 
                 data: {
 
-                    labels,
+                    labels:
+                        labels,
 
                     datasets: [
 
@@ -2300,7 +2645,8 @@ function createRainChart(
 
                 options: {
 
-                    responsive: true,
+                    responsive:
+                        true,
 
                     maintainAspectRatio:
                         false,
@@ -2312,7 +2658,8 @@ function createRainChart(
                             beginAtZero:
                                 true,
 
-                            max: 100
+                            max:
+                                100
 
                         }
 
@@ -2364,7 +2711,11 @@ async function loadAirQuality(
         data.current;
 
 
-    if (!current) return;
+    if (!current) {
+
+        return;
+
+    }
 
 
     setText(
@@ -2378,7 +2729,8 @@ async function loadAirQuality(
     setText(
         "pm25",
         Number(
-            current.pm2_5 ?? 0
+            current.pm2_5 ??
+            0
         ).toFixed(1)
     );
 
@@ -2386,7 +2738,8 @@ async function loadAirQuality(
     setText(
         "pm10",
         Number(
-            current.pm10 ?? 0
+            current.pm10 ??
+            0
         ).toFixed(1)
     );
 
@@ -2394,7 +2747,8 @@ async function loadAirQuality(
     setText(
         "ozone",
         Number(
-            current.ozone ?? 0
+            current.ozone ??
+            0
         ).toFixed(1)
     );
 
@@ -2402,7 +2756,8 @@ async function loadAirQuality(
     setText(
         "no2",
         Number(
-            current.nitrogen_dioxide ?? 0
+            current.nitrogen_dioxide ??
+            0
         ).toFixed(1)
     );
 
@@ -2418,7 +2773,7 @@ async function loadAirQuality(
 
 
 /* =========================================================
-   AQI
+   AQI STATUS
 ========================================================= */
 
 function getAQIStatus(
@@ -2435,25 +2790,50 @@ function getAQIStatus(
     }
 
 
-    if (aqi <= 50) {
+    if (
+        aqi <= 50
+    ) {
+
         return "Good";
+
     }
 
-    if (aqi <= 100) {
+
+    if (
+        aqi <= 100
+    ) {
+
         return "Moderate";
+
     }
 
-    if (aqi <= 150) {
+
+    if (
+        aqi <= 150
+    ) {
+
         return "Unhealthy for Sensitive Groups";
+
     }
 
-    if (aqi <= 200) {
+
+    if (
+        aqi <= 200
+    ) {
+
         return "Unhealthy";
+
     }
 
-    if (aqi <= 300) {
+
+    if (
+        aqi <= 300
+    ) {
+
         return "Very Unhealthy";
+
     }
+
 
     return "Hazardous";
 
@@ -2472,7 +2852,11 @@ async function loadEarthquakes() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     const response =
@@ -2498,7 +2882,8 @@ async function loadEarthquakes() {
         data.features || [];
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     if (
@@ -2506,9 +2891,13 @@ async function loadEarthquakes() {
     ) {
 
         container.innerHTML = `
+
             <div class="loading-message">
+
                 No recent earthquake information available.
+
             </div>
+
         `;
 
         return;
@@ -2555,6 +2944,7 @@ async function loadEarthquakes() {
                 item.innerHTML = `
 
                     <div class="magnitude">
+
                         M ${
                             magnitude !== null
                                 ? Number(
@@ -2562,23 +2952,32 @@ async function loadEarthquakes() {
                                 ).toFixed(1)
                                 : "--"
                         }
+
                     </div>
+
 
                     <div>
 
                         <div class="event-location">
+
                             ${escapeHTML(
                                 place
                             )}
+
                         </div>
 
+
                         <div class="event-meta">
+
                             USGS earthquake monitoring
+
                         </div>
 
                     </div>
 
+
                     <div class="event-time">
+
                         ${
                             time
                                 ? time.toLocaleString(
@@ -2586,6 +2985,7 @@ async function loadEarthquakes() {
                                 )
                                 : "--"
                         }
+
                     </div>
 
                 `;
@@ -2602,7 +3002,7 @@ async function loadEarthquakes() {
 
 
 /* =========================================================
-   STORM / ALERTS
+   STORM & ALERTS
 ========================================================= */
 
 function updateStormInformation(
@@ -2615,7 +3015,11 @@ function updateStormInformation(
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     const code =
@@ -2633,9 +3037,17 @@ function updateStormInformation(
 
 
         container.innerHTML = `
-            ⚠️ <strong>Thunderstorm conditions detected.</strong>
+
+            ⚠️
+
+            <strong>
+                Thunderstorm conditions detected.
+            </strong>
+
             <br>
+
             Please monitor official local weather warnings.
+
         `;
 
         return;
@@ -2653,9 +3065,17 @@ function updateStormInformation(
 
 
         container.innerHTML = `
-            🌧️ <strong>Rain shower conditions detected.</strong>
+
+            🌧️
+
+            <strong>
+                Rain shower conditions detected.
+            </strong>
+
             <br>
+
             Keep monitoring local weather conditions.
+
         `;
 
         return;
@@ -2668,16 +3088,26 @@ function updateStormInformation(
 
 
     container.innerHTML = `
-        ✅ <strong>No major severe-weather condition detected in the current weather data.</strong>
+
+        ✅
+
+        <strong>
+            No major severe-weather condition detected
+            in the current weather data.
+        </strong>
+
         <br>
-        Always follow official local weather warnings during severe conditions.
+
+        Always follow official local weather
+        warnings during severe conditions.
+
     `;
 
 }
 
 
 /* =========================================================
-   RECENT SEARCHES
+   RECENT SEARCH
 ========================================================= */
 
 function saveRecentSearch(
@@ -2700,25 +3130,32 @@ function saveRecentSearch(
                 location.name,
 
             village:
-                location.village || "",
+                location.village ||
+                "",
 
             town:
-                location.town || "",
+                location.town ||
+                "",
 
             city:
-                location.city || "",
+                location.city ||
+                "",
 
             district:
-                location.district || "",
+                location.district ||
+                "",
 
             state:
-                location.state || "",
+                location.state ||
+                "",
 
             country:
-                location.country || "",
+                location.country ||
+                "",
 
             postcode:
-                location.postcode || "",
+                location.postcode ||
+                "",
 
             latitude:
                 location.latitude,
@@ -2772,7 +3209,9 @@ function saveRecentSearch(
 
     catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
     }
 
@@ -2791,7 +3230,11 @@ function displayRecentSearches() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     let history = [];
@@ -2827,7 +3270,8 @@ function displayRecentSearches() {
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     history.forEach(
@@ -2970,6 +3414,10 @@ function addCurrentFavorite() {
 }
 
 
+/* =========================================================
+   DISPLAY FAVORITES
+========================================================= */
+
 function displayFavorites() {
 
     const container =
@@ -2978,7 +3426,11 @@ function displayFavorites() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     const favorites =
@@ -2997,7 +3449,8 @@ function displayFavorites() {
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     favorites.forEach(
@@ -3060,7 +3513,7 @@ function clearHistory() {
 
 
 /* =========================================================
-   LOADING
+   LOADING STATE
 ========================================================= */
 
 function setLoadingState() {
@@ -3158,7 +3611,7 @@ function setLoadingState() {
 
 
 /* =========================================================
-   ERRORS
+   ERROR STATES
 ========================================================= */
 
 function showWeatherError() {
@@ -3190,25 +3643,30 @@ function showAirQualityError() {
         "--"
     );
 
+
     setText(
         "pm25",
         "--"
     );
+
 
     setText(
         "pm10",
         "--"
     );
 
+
     setText(
         "ozone",
         "--"
     );
 
+
     setText(
         "no2",
         "--"
     );
+
 
     setText(
         "aqiStatus",
@@ -3226,13 +3684,21 @@ function showEarthquakeError() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+
+        return;
+
+    }
 
 
     container.innerHTML = `
+
         <div class="loading-message">
+
             Earthquake data is currently unavailable.
+
         </div>
+
     `;
 
 }
@@ -3248,34 +3714,89 @@ function weatherCodeToText(
 
     const map = {
 
-        0: "Clear Sky",
-        1: "Mainly Clear",
-        2: "Partly Cloudy",
-        3: "Overcast",
-        45: "Fog",
-        48: "Rime Fog",
-        51: "Light Drizzle",
-        53: "Moderate Drizzle",
-        55: "Dense Drizzle",
-        56: "Freezing Drizzle",
-        57: "Dense Freezing Drizzle",
-        61: "Light Rain",
-        63: "Moderate Rain",
-        65: "Heavy Rain",
-        66: "Freezing Rain",
-        67: "Heavy Freezing Rain",
-        71: "Light Snow",
-        73: "Moderate Snow",
-        75: "Heavy Snow",
-        77: "Snow Grains",
-        80: "Light Rain Showers",
-        81: "Moderate Rain Showers",
-        82: "Heavy Rain Showers",
-        85: "Light Snow Showers",
-        86: "Heavy Snow Showers",
-        95: "Thunderstorm",
-        96: "Thunderstorm with Hail",
-        99: "Severe Thunderstorm"
+        0:
+            "Clear Sky",
+
+        1:
+            "Mainly Clear",
+
+        2:
+            "Partly Cloudy",
+
+        3:
+            "Overcast",
+
+        45:
+            "Fog",
+
+        48:
+            "Rime Fog",
+
+        51:
+            "Light Drizzle",
+
+        53:
+            "Moderate Drizzle",
+
+        55:
+            "Dense Drizzle",
+
+        56:
+            "Freezing Drizzle",
+
+        57:
+            "Dense Freezing Drizzle",
+
+        61:
+            "Light Rain",
+
+        63:
+            "Moderate Rain",
+
+        65:
+            "Heavy Rain",
+
+        66:
+            "Freezing Rain",
+
+        67:
+            "Heavy Freezing Rain",
+
+        71:
+            "Light Snow",
+
+        73:
+            "Moderate Snow",
+
+        75:
+            "Heavy Snow",
+
+        77:
+            "Snow Grains",
+
+        80:
+            "Light Rain Showers",
+
+        81:
+            "Moderate Rain Showers",
+
+        82:
+            "Heavy Rain Showers",
+
+        85:
+            "Light Snow Showers",
+
+        86:
+            "Heavy Snow Showers",
+
+        95:
+            "Thunderstorm",
+
+        96:
+            "Thunderstorm with Hail",
+
+        99:
+            "Severe Thunderstorm"
 
     };
 
@@ -3297,7 +3818,9 @@ function weatherCodeToEmoji(
     isDay = 1
 ) {
 
-    if (code === 0) {
+    if (
+        code === 0
+    ) {
 
         return isDay
             ? "☀️"
@@ -3318,7 +3841,9 @@ function weatherCodeToEmoji(
     }
 
 
-    if (code === 3) {
+    if (
+        code === 3
+    ) {
 
         return "☁️";
 
@@ -3385,7 +3910,9 @@ function weatherCodeToEmoji(
     }
 
 
-    if (code >= 95) {
+    if (
+        code >= 95
+    ) {
 
         return "⛈️";
 
@@ -3398,7 +3925,7 @@ function weatherCodeToEmoji(
 
 
 /* =========================================================
-   UTILITIES
+   HELPER FUNCTIONS
 ========================================================= */
 
 function setText(
@@ -3407,7 +3934,9 @@ function setText(
 ) {
 
     const element =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
 
     if (element) {
@@ -3466,7 +3995,9 @@ function formatTime(
 ) {
 
     if (!value) {
+
         return "--";
+
     }
 
 
@@ -3477,8 +4008,11 @@ function formatTime(
     return date.toLocaleTimeString(
         "en-IN",
         {
-            hour: "numeric",
-            minute: "2-digit"
+            hour:
+                "numeric",
+
+            minute:
+                "2-digit"
         }
     );
 
@@ -3490,7 +4024,9 @@ function formatDateTime(
 ) {
 
     if (!value) {
+
         return "--";
+
     }
 
 
@@ -3501,12 +4037,25 @@ function formatDateTime(
     return date.toLocaleString(
         "en-IN",
         {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
+
+            weekday:
+                "long",
+
+            day:
+                "numeric",
+
+            month:
+                "long",
+
+            year:
+                "numeric",
+
+            hour:
+                "numeric",
+
+            minute:
+                "2-digit"
+
         }
     );
 
@@ -3517,7 +4066,9 @@ function escapeHTML(
     value
 ) {
 
-    return String(value)
+    return String(
+        value
+    )
 
         .replaceAll(
             "&",
@@ -3551,7 +4102,9 @@ function showLocationMessage(
     message
 ) {
 
-    if (locationMessage) {
+    if (
+        locationMessage
+    ) {
 
         locationMessage.textContent =
             message;
@@ -3565,7 +4118,9 @@ function showLocationMessage(
    EVENT LISTENERS
 ========================================================= */
 
-if (currentLocationBtn) {
+if (
+    currentLocationBtn
+) {
 
     currentLocationBtn.addEventListener(
         "click",
@@ -3575,7 +4130,9 @@ if (currentLocationBtn) {
 }
 
 
-if (myLocationBtn) {
+if (
+    myLocationBtn
+) {
 
     myLocationBtn.addEventListener(
         "click",
@@ -3585,7 +4142,9 @@ if (myLocationBtn) {
 }
 
 
-if (refreshBtn) {
+if (
+    refreshBtn
+) {
 
     refreshBtn.addEventListener(
         "click",
@@ -3597,9 +4156,13 @@ if (refreshBtn) {
             ) {
 
                 loadAllData(
+
                     currentLatitude,
+
                     currentLongitude,
-                    currentLocationData || {
+
+                    currentLocationData ||
+                    {
 
                         name:
                             currentLocationName,
@@ -3611,6 +4174,7 @@ if (refreshBtn) {
                             currentLongitude
 
                     }
+
                 );
 
             }
@@ -3621,7 +4185,9 @@ if (refreshBtn) {
 }
 
 
-if (searchBtn) {
+if (
+    searchBtn
+) {
 
     searchBtn.addEventListener(
         "click",
@@ -3638,14 +4204,17 @@ if (searchBtn) {
 }
 
 
-if (locationSearch) {
+if (
+    locationSearch
+) {
 
     locationSearch.addEventListener(
         "keydown",
         function(event) {
 
             if (
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ) {
 
                 searchLocation(
@@ -3661,7 +4230,9 @@ if (locationSearch) {
 }
 
 
-if (dashboardSearchBtn) {
+if (
+    dashboardSearchBtn
+) {
 
     dashboardSearchBtn.addEventListener(
         "click",
@@ -3678,14 +4249,17 @@ if (dashboardSearchBtn) {
 }
 
 
-if (dashboardSearch) {
+if (
+    dashboardSearch
+) {
 
     dashboardSearch.addEventListener(
         "keydown",
         function(event) {
 
             if (
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ) {
 
                 searchLocation(
@@ -3701,13 +4275,19 @@ if (dashboardSearch) {
 }
 
 
+/* =========================================================
+   FAVORITE BUTTON
+========================================================= */
+
 const addFavoriteBtn =
     document.getElementById(
         "addFavoriteBtn"
     );
 
 
-if (addFavoriteBtn) {
+if (
+    addFavoriteBtn
+) {
 
     addFavoriteBtn.addEventListener(
         "click",
@@ -3717,13 +4297,19 @@ if (addFavoriteBtn) {
 }
 
 
+/* =========================================================
+   CLEAR HISTORY BUTTON
+========================================================= */
+
 const clearHistoryBtn =
     document.getElementById(
         "clearHistoryBtn"
     );
 
 
-if (clearHistoryBtn) {
+if (
+    clearHistoryBtn
+) {
 
     clearHistoryBtn.addEventListener(
         "click",
@@ -3734,7 +4320,7 @@ if (clearHistoryBtn) {
 
 
 /* =========================================================
-   START
+   INITIALIZE
 ========================================================= */
 
 displayFavorites();
