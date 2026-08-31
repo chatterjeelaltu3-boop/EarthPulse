@@ -716,7 +716,6 @@
             background: #071a29;
         }
 
-        /* Map Layers - Left Side */
         .map-layers {
             position: absolute;
             top: 15px;
@@ -746,7 +745,6 @@
             border-color: #16c7ff;
         }
 
-        /* Map Search - Right Top */
         .map-search {
             position: absolute;
             right: 15px;
@@ -792,7 +790,6 @@
             background: #0e8ac7;
         }
 
-        /* Map Info - Bottom */
         .map-info {
             position: absolute;
             bottom: 10px;
@@ -811,7 +808,6 @@
             backdrop-filter: blur(8px);
         }
 
-        /* Custom Zoom Control - Right Side */
         .custom-zoom {
             position: absolute;
             right: 15px;
@@ -844,7 +840,6 @@
             border-color: #16c7ff;
         }
 
-        /* Override Leaflet Zoom - Hide Default */
         .leaflet-control-zoom {
             display: none !important;
         }
@@ -1664,7 +1659,7 @@
     <script>
         /* =====================================================
            EARTHPULSE - COMPLETE JAVASCRIPT
-           FIXED: Location detection + Enhanced Map
+           FIXED: Location detection for mobile phones
         ===================================================== */
 
         // =====================================================
@@ -2526,7 +2521,7 @@
         }
 
         // =====================================================
-        // CURRENT LOCATION - FIXED FOR PHONE
+        // CURRENT LOCATION - FIXED FOR MOBILE PHONES
         // =====================================================
 
         async function useCurrentLocation() {
@@ -2538,10 +2533,28 @@
             btn.textContent = "📍 Detecting...";
             btn.disabled = true;
 
-            $("locationMessage").textContent = "📍 Detecting your current location...";
+            const msg = $("locationMessage");
+            msg.textContent = "📍 Detecting your current location...";
+            msg.style.color = "#72dfff";
 
+            // Check if browser supports geolocation
             if (!navigator.geolocation) {
-                alert("Geolocation is not supported by this browser.");
+                msg.textContent = "❌ Geolocation is not supported by this browser.";
+                msg.style.color = "#ff6b6b";
+                alert("Geolocation is not supported by this browser. Please search your location manually.");
+                btn.textContent = originalText;
+                btn.disabled = false;
+                isLocating = false;
+                return;
+            }
+
+            // Check if we're on HTTPS (required for geolocation)
+            if (window.location.protocol !== "https:" && window.location.hostname !== "localhost" && window.location
+                .hostname !== "127.0.0.1") {
+                msg.textContent = "⚠️ Location requires HTTPS. Please use a secure connection.";
+                msg.style.color = "#ffd93d";
+                alert(
+                    "📍 Location detection requires HTTPS.\n\nPlease open this page using:\n• https:// (secure connection)\n• Or localhost\n\nYou can still search locations manually.");
                 btn.textContent = originalText;
                 btn.disabled = false;
                 isLocating = false;
@@ -2549,26 +2562,32 @@
             }
 
             try {
-                // Use Promise wrapper for better error handling
+                // Request location with timeout
                 const position = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject, {
                         enableHighAccuracy: true,
                         timeout: 15000,
-                        maximumAge: 300000
+                        maximumAge: 60000 // 1 minute cache
                     });
                 });
 
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
-                // Reverse geocoding
-                let locationData = await reverseGeocode(latitude, longitude);
+                msg.textContent = "📍 Location detected! Getting address...";
+                msg.style.color = "#72dfff";
+
+                // Reverse geocoding with timeout
+                let locationData = await Promise.race([
+                    reverseGeocode(latitude, longitude),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Geocoding timeout")), 8000))
+                ]);
 
                 if (!locationData) {
                     locationData = {
                         name: "Current Location",
-                        latitude,
-                        longitude,
+                        latitude: latitude,
+                        longitude: longitude,
                         country: "",
                         admin1: "",
                         admin2: "",
@@ -2580,27 +2599,48 @@
                 locationData.latitude = latitude;
                 locationData.longitude = longitude;
 
-                $("locationMessage").textContent = "📍 Location detected successfully.";
+                msg.textContent = "✅ Location detected successfully!";
+                msg.style.color = "#4cdf8b";
+
+                // Save permission granted
+                try {
+                    localStorage.setItem("earthpulseLocationGranted", "true");
+                } catch (e) {}
+
                 await selectLocation(locationData);
 
             } catch (error) {
                 console.error("Location error:", error);
 
-                $("locationMessage").textContent = "Unable to detect location.";
+                // Handle different error types
+                let errorMessage = "";
+                let alertMessage = "";
 
                 if (error.code === 1) {
-                    alert(
-                        "📍 Location permission was denied.\n\nPlease allow location access in your browser settings.\n\nChrome: Settings → Privacy → Location\nSafari: Settings → Privacy → Location\nFirefox: Settings → Privacy & Security → Location");
+                    errorMessage = "❌ Location permission denied.";
+                    alertMessage =
+                        "📍 Location permission was denied.\n\nTo enable location:\n\n📱 Android/Chrome:\nSettings → Site Settings → Location → Allow\n\n📱 iPhone/Safari:\nSettings → Privacy → Location Services → On\n\nThen refresh and try again.";
                 } else if (error.code === 2) {
-                    alert(
-                        "📍 Location unavailable.\n\nPlease check your GPS or network connection and try again.");
+                    errorMessage = "❌ Location unavailable.";
+                    alertMessage =
+                        "📍 Location unavailable.\n\nPlease check:\n• GPS is turned ON\n• Internet connection is active\n• Location services are enabled\n\nThen try again.";
                 } else if (error.code === 3) {
-                    alert("📍 Location request timed out.\n\nPlease try again or search your location manually.");
+                    errorMessage = "⏱️ Location request timed out.";
+                    alertMessage =
+                        "📍 Location request timed out.\n\nPlease try:\n• Move to an open area for better GPS signal\n• Check your internet connection\n• Try again\n\nOr search your location manually.";
+                } else if (error.message === "Geocoding timeout") {
+                    errorMessage = "⏱️ Address lookup timed out.";
+                    alertMessage =
+                        "📍 Address lookup took too long.\n\nYour location was detected but we couldn't get the address.\nPlease try again or search manually.";
                 } else {
-                    alert(
-                        "📍 Could not detect your location.\n\nPlease search your location manually using the search box."
-                        );
+                    errorMessage = "❌ Could not detect location.";
+                    alertMessage =
+                        "📍 Could not detect your location.\n\nPlease search your location manually using the search box.";
                 }
+
+                msg.textContent = errorMessage;
+                msg.style.color = "#ff6b6b";
+                alert(alertMessage);
 
             } finally {
                 btn.textContent = originalText;
@@ -2618,7 +2658,10 @@
                 const url = NOMINATIM_URL + "/reverse?format=jsonv2&addressdetails=1&lat=" +
                     encodeURIComponent(latitude) + "&lon=" + encodeURIComponent(longitude);
 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: { "Accept": "application/json" }
+                });
+
                 if (!response.ok) return null;
                 const data = await response.json();
                 const address = data.address || {};
@@ -2626,8 +2669,8 @@
                 return {
                     name: address.village || address.town || address.city || address.municipality || address.county ||
                         address.state_district || "Current Location",
-                    latitude,
-                    longitude,
+                    latitude: latitude,
+                    longitude: longitude,
                     country: address.country || "",
                     admin1: address.state || "",
                     admin2: address.county || address.state_district || "",
@@ -2636,7 +2679,7 @@
                 };
 
             } catch (error) {
-                console.error(error);
+                console.error("Reverse geocode error:", error);
                 return null;
             }
         }
@@ -2862,20 +2905,30 @@
 
         console.log("🌍 EarthPulse initialized successfully.");
 
-        // If the user is on HTTPS, try to auto-detect location with a subtle approach
-        // Only if user has previously granted permission
-        if (window.location.protocol === "https:") {
-            // Check if location was previously granted
+        // Auto-detect location only if user previously granted permission
+        if (window.location.protocol === "https:" || window.location.hostname === "localhost") {
             try {
                 const hasGranted = localStorage.getItem("earthpulseLocationGranted");
                 if (hasGranted === "true") {
-                    // Auto-detect with a small delay
                     setTimeout(() => {
                         useCurrentLocation();
-                    }, 1000);
+                    }, 1500);
                 }
             } catch (e) {}
         }
+
+        // Show HTTPS warning if needed
+        if (window.location.protocol !== "https:" && window.location.hostname !== "localhost" && window.location
+            .hostname !== "127.0.0.1") {
+            const msg = $("locationMessage");
+            if (msg) {
+                msg.textContent = "⚠️ Use HTTPS for location detection. Search manually or use a secure connection.";
+                msg.style.color = "#ffd93d";
+            }
+        }
+
+        console.log("📱 Phone location detection enabled.");
+        console.log("🔒 HTTPS status:", window.location.protocol);
     </script>
 
 </body>
